@@ -86,11 +86,18 @@ jobs:
                 type=raw,value=${{ steps.final_tags.outputs.tags }}-c
                 type=raw,value=latest
 
+      - name: Download and Extract RootFS
+        run: |
+          mkdir -p imm
+          cd imm
+          wget -O rootfs.tar.gz https://downloads.immortalwrt.org/releases/24.10.0-rc3/targets/armsr/armv8/immortalwrt-24.10.0-rc3-armsr-armv8-rootfs.tar.gz
+          gzip -d rootfs.tar.gz
+
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: ./c
-          file: ./c/Dockerfile
+          context: ./src
+          file: ./src/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
