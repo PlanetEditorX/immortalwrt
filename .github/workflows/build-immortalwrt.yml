@@ -83,7 +83,7 @@ jobs:
         with:
           images: yexundao/immortalwrt
           tags: |
-                type=raw,value=${{ steps.final_tags.outputs.tags }}-c
+                type=raw,value=${{ steps.final_tags.outputs.tags }}
                 type=raw,value=latest
 
       - name: Download and Extract RootFS
