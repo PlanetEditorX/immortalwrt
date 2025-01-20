@@ -94,7 +94,7 @@ jobs:
           gzip -d rootfs.tar.gz
 
       - name: Move rootfs.tar.gz to build context
-        run: mv imm/rootfs.tar.gz ./src/
+        run: mv imm/rootfs.tar ./src/
   
       - name: Build and push
         uses: docker/build-push-action@v5
