@@ -29,7 +29,7 @@
   ```
 ### 6.创建容器
   ```bash
-  docker run --name immortalwrt -d --network macnet --privileged --restart=always immortalwrt:latest /sbin/init
+  docker run --name immortalwrt -d --network macnet --privileged --restart=always yexundao/immortalwrt:latest /sbin/init
   ```
 ### 7.进入容器
   ```bash
