@@ -187,7 +187,15 @@ jobs:
           opkg install luci-i18n-filebrowser-go-zh-cn; \
           opkg install luci-i18n-argon-config-zh-cn; \
           opkg install openssh-sftp-server"
-      
+
+      - name: Download and run imm.sh
+        run: |
+          docker exec immortalwrt-arm64 sh -c "wget -qO imm.sh https://cafe.cpolar.top/wkdaily/zero3/raw/branch/main/zero3/imm.sh && chmod +x imm.sh && ./imm.sh"
+
+      - name: Install luci-i18n-quickstart-zh-cn
+        run: |
+          docker exec immortalwrt-arm64 sh -c "/tmp/is-opkg opkg install luci-i18n-quickstart-zh-cn"
+    
       - name: Commit modified container
         run: |
           docker commit immortalwrt-arm64 immortalwrt:initial-arm64
