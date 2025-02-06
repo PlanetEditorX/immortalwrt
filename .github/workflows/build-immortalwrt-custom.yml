@@ -156,10 +156,6 @@ jobs:
       - name: Run container in immortalwrt-arm64
         run: |
           docker run -d --name immortalwrt-arm64 --platform linux/arm64 --privileged immortalwrt:initial-arm64 /bin/sh -c "while true; do sleep 1000; done"
-
-      - name: Ensure /var/lock directory exists in immortalwrt-arm64
-        run: |
-          docker exec immortalwrt-arm64 sh -c "mkdir -p /var/lock"
     
       - name: Modify network configuration in immortalwrt-arm64
         run: |
@@ -180,6 +176,10 @@ jobs:
             	option device 'eth0'
             EOF"
 
+      - name: Ensure /var/lock directory exists in immortalwrt-arm64
+        run: |
+          docker exec immortalwrt-arm64 sh -c "mkdir -p /var/lock"
+      
       - name: Install packages in immortalwrt-arm64
         run: |
           docker exec immortalwrt-arm64 sh -c "opkg update; \
@@ -190,6 +190,7 @@ jobs:
 
       - name: Download and run imm.sh
         run: |
+          docker exec immortalwrt-arm64 sh -c "mkdir -p /tmp/is-root/var/lock"
           docker exec immortalwrt-arm64 sh -c "wget -qO imm.sh https://cafe.cpolar.top/wkdaily/zero3/raw/branch/main/zero3/imm.sh && chmod +x imm.sh && ./imm.sh"
 
       - name: Install luci-i18n-quickstart-zh-cn
