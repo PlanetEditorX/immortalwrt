@@ -141,6 +141,16 @@ jobs:
           platforms: linux/arm64
           tags: immortalwrt:initial-arm64
           push: false  # 不推送镜像
+
+      - name: List local Docker images
+        run: docker images
+
+      - name: Ensure Docker image exists
+        run: |
+          if ! docker image inspect immortalwrt:initial-arm64 &> /dev/null; then
+            echo "Image 'immortalwrt:initial-arm64' not found. Rebuilding..."
+            docker build -t immortalwrt:initial-arm64 --platform linux/arm64 ./src/arm64
+          fi
   
       - name: Run container and modify arm64
         run: |
