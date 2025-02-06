@@ -137,6 +137,7 @@ jobs:
         run: |
           docker cp ./src/ipk/arm/ immortalwrt-arm64:/tmp/ipk/
           docker exec immortalwrt-arm64 sh -c "
+            opkg update
             cd /tmp/ipk/
             opkg install *.ipk
           "
