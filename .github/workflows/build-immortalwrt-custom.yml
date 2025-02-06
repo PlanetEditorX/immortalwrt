@@ -154,13 +154,17 @@ jobs:
           docker exec immortalwrt-amd64 sh -c "wget -qO PassWall2.sh https://github.com/AUK9527/Are-u-ok/raw/main/x86/all/PassWall2_1.30-3_x86_64_all_sdk_22.03.7.run && chmod +x PassWall2.sh && ./PassWall2.sh"
           docker exec immortalwrt-amd64 sh -c "wget -qO OpenClash.sh https://github.com/AUK9527/Are-u-ok/raw/main/x86/all/OpenClash_0.46.014+x86_64_core.run && chmod +x OpenClash.sh && ./OpenClash.sh"
         continue-on-error: true  # 如果步骤失败，继续执行后续步骤
-      
+
+      - name: Commit modified container
+        run: |
+          docker commit immortalwrt-amd64 immortalwrt:amd64
+          
       - name: Push modified Docker image amd64
         run: |
-          docker tag immortalwrt:initial-amd64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-amd
-          docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-amd
-          docker tag immortalwrt:initial-amd64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:amd
+          docker tag immortalwrt:amd64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:amd
           docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:amd
+          docker tag immortalwrt:amd64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-amd
+          docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-amd
 
       - name: Build ARM Docker image
         id: build
@@ -236,15 +240,15 @@ jobs:
 
       - name: Commit modified container
         run: |
-          docker commit immortalwrt-arm64 immortalwrt:initial-arm64
+          docker commit immortalwrt-arm64 immortalwrt:arm64
           
       - name: Push modified Docker image arm64
         run: |
-          docker tag immortalwrt:initial-arm64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:arm
+          docker tag immortalwrt:arm64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:arm
           docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:arm
-          docker tag immortalwrt:initial-arm64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-arm
+          docker tag immortalwrt:arm64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-arm
           docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-arm
-          docker tag immortalwrt:initial-arm64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:latest
+          docker tag immortalwrt:arm64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:latest
           
           
