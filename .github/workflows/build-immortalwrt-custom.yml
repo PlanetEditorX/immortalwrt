@@ -155,12 +155,12 @@ jobs:
           docker exec immortalwrt-amd64 sh -c "wget -qO OpenClash.sh https://github.com/AUK9527/Are-u-ok/raw/main/x86/all/OpenClash_0.46.014+x86_64_core.run && chmod +x OpenClash.sh && ./OpenClash.sh"
         continue-on-error: true  # 如果步骤失败，继续执行后续步骤
       
-      # - name: Push modified Docker image amd64
-      #   run: |
-      #     docker tag immortalwrt:initial-amd64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-amd
-      #     docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-amd
-      #     docker tag immortalwrt:initial-amd64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:amd
-      #     docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:amd
+      - name: Push modified Docker image amd64
+        run: |
+          docker tag immortalwrt:initial-amd64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-amd
+          docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-amd
+          docker tag immortalwrt:initial-amd64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:amd
+          docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:amd
 
       - name: Build ARM Docker image
         id: build
@@ -218,10 +218,10 @@ jobs:
           opkg install openssh-sftp-server; \
           opkg install curl"
 
-      - name: Download and run imm.sh
+      - name: Download and run istore-reinstall.run
         run: |
-          docker exec immortalwrt-arm64 sh -c "mkdir -p /tmp/is-root/var/lock"
-          docker exec immortalwrt-arm64 sh -c "wget -qO imm.sh https://cafe.cpolar.top/wkdaily/zero3/raw/branch/main/zero3/imm.sh && chmod +x imm.sh && ./imm.sh"
+          docker exec immortalwrt-amd64 sh -c "mkdir -p /tmp/is-root/var/lock"
+          docker exec immortalwrt-amd64 sh -c "cd /tmp && wget -O istore-reinstall.run https://github.com/linkease/openwrt-app-actions/raw/main/applications/luci-app-systools/root/usr/share/systools/istore-reinstall.run && chmod 755 istore-reinstall.run && ./istore-reinstall.run"
 
       - name: Install luci-i18n-quickstart-zh-cn
         run: |
@@ -238,14 +238,14 @@ jobs:
         run: |
           docker commit immortalwrt-arm64 immortalwrt:initial-arm64
           
-      # - name: Push modified Docker image arm64
-      #   run: |
-      #     docker tag immortalwrt:initial-arm64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:arm
-      #     docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:arm
-      #     docker tag immortalwrt:initial-arm64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-arm
-      #     docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-arm
-      #     docker tag immortalwrt:initial-arm64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:latest
-      #     docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:latest
+      - name: Push modified Docker image arm64
+        run: |
+          docker tag immortalwrt:initial-arm64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:arm
+          docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:arm
+          docker tag immortalwrt:initial-arm64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-arm
+          docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-arm
+          docker tag immortalwrt:initial-arm64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:latest
           
           
 
