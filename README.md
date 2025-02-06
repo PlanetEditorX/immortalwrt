@@ -27,10 +27,13 @@
   ```bash
   docker pull yexundao/immortalwrt:latest
   ```
+  - latest/arm：最新arm版本
+  - amd：最新amd版本
 ### 6.创建容器
   ```bash
   docker run --name immortalwrt -d --network macnet --privileged --restart=always yexundao/immortalwrt:latest /sbin/init
   ```
+  - 默认为arm版本的docker容器，启动后通过管理IP直接可以使用，无需后续操作
 ### 7.进入容器
   ```bash
   docker exec -it immortalwrt sh
