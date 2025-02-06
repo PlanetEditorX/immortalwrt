@@ -155,13 +155,6 @@ jobs:
             	option device 'eth0'
             EOF"
           docker commit immortalwrt-amd64 immortalwrt:amd64
-          
-      - name: Push modified Docker image amd64
-        run: |
-          docker tag immortalwrt:amd64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:amd
-          docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:amd
-          docker tag immortalwrt:amd64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-amd
-          docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-amd
 
       - name: Build ARM Docker image
         id: build
@@ -203,7 +196,7 @@ jobs:
       - name: Download and run istore-reinstall.run
         run: |
           docker exec immortalwrt-amd64 sh -c "mkdir -p /tmp/is-root/var/lock"
-          docker exec immortalwrt-amd64 sh -c "cd /tmp && wget -O imm.run https://cafe.cpolar.top/wkdaily/zero3/raw/branch/main/zero3/imm.sh && chmod 755 imm.run && ./imm.run"
+          docker exec immortalwrt-amd64 sh -c "cd /tmp && wget -O istore-reinstall.run https://raw.githubusercontent.com/PlanetEditorX/immortalwrt/refs/heads/main/src/istore-reinstall.run && chmod 755 istore-reinstall.run && ./istore-reinstall.run"
 
       - name: Install luci-i18n-quickstart-zh-cn
         run: |
@@ -233,7 +226,14 @@ jobs:
             	option device 'eth0'
             EOF"
           docker commit immortalwrt-arm64 immortalwrt:arm64
-          
+
+      - name: Push modified Docker image amd64
+        run: |
+          docker tag immortalwrt:amd64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:amd
+          docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:amd
+          docker tag immortalwrt:amd64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-amd
+          docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-amd
+
       - name: Push modified Docker image arm64
         run: |
           docker tag immortalwrt:arm64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:arm
