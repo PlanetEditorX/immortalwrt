@@ -83,14 +83,6 @@ jobs:
             echo "tags=$NEW_VERSION" >> $GITHUB_OUTPUT
           fi
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
-        with:
-          images: yexundao/immortalwrt
-          tags: |
-                type=raw,value=${{ steps.final_tags.outputs.tags }}
-
       - name: Download and Extract RootFS
         run: |
           mkdir -p immortalwrt
@@ -137,6 +129,6 @@ jobs:
           
       - name: Push modified Docker image amd64
         run: |
-          docker tag immortalwrt:initial-amd64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.meta.outputs.tags }}
-          docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.meta.outputs.tags }}
+          docker tag immortalwrt:initial-amd64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-amd
+          docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-amd
           
