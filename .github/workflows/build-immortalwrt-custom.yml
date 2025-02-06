@@ -153,8 +153,8 @@ jobs:
         
       - name: Install Are-u-ok
         run: |
-          docker exec immortalwrt-arm64 sh -c "wget -qO PassWall2.sh https://github.com/PlanetEditorX/immortalwrt/tree/main/src/are-u-ok/arm/PassWall2_1.30-3_aarch64_a53_all_sdk_22.03.7.run && chmod +x PassWall2.sh && ./PassWall2.sh"
-          docker exec immortalwrt-arm64 sh -c "wget -qO OpenClash.sh https://github.com/PlanetEditorX/immortalwrt/tree/main/src/are-u-ok/arm/OpenClash_0.46.014+aarch_64_core.run && chmod +x OpenClash.sh && ./OpenClash.sh"
+          docker exec immortalwrt-arm64 sh -c "wget -qO PassWall2.sh https://github.com/PlanetEditorX/immortalwrt/raw/refs/heads/main/src/are-u-ok/arm/PassWall2_1.30-3_aarch64_a53_all_sdk_22.03.7.run && chmod +x PassWall2.sh && ./PassWall2.sh"
+          docker exec immortalwrt-arm64 sh -c "wget -qO OpenClash.sh https://github.com/PlanetEditorX/immortalwrt/raw/refs/heads/main/src/are-u-ok/arm/OpenClash_0.46.014+aarch_64_core.run && chmod +x OpenClash.sh && ./OpenClash.sh"
 
       - name: Commit modified container
         run: |
