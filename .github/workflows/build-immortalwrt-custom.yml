@@ -109,6 +109,8 @@ jobs:
 
       - name: Build initial Docker image
         run: |
+          cp ./src/Dockerfile ./src/amd64
+          cp ./src/Dockerfile ./src/arm64
           docker build -t immortalwrt:initial-amd64 ./src/amd64
           docker build -t immortalwrt:initial-arm64 ./src/arm64
 
