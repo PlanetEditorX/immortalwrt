@@ -132,7 +132,17 @@ jobs:
       - name: Ensure /var/lock directory exists in immortalwrt-arm64
         run: |
           docker exec immortalwrt-arm64 sh -c "mkdir -p /var/lock"
-          
+  
+      - name: Copy and install ipk in immortalwrt-arm64
+        run: |
+          docker exec immortalwrt-arm64 sh -c "mkdir -p /tmp/ipk"
+          docker cp ./src/ipk/arm immortalwrt-arm64:/tmp/ipk
+          docker exec immortalwrt-arm64 sh -c "
+            cd /tmp/ipk/
+            opkg install *.ipk
+            rm -rf *.ipk
+          "
+  
       - name: Install packages in immortalwrt-arm64
         run: |
           docker exec immortalwrt-arm64 sh -c "opkg update; \
