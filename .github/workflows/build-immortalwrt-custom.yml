@@ -152,10 +152,13 @@ jobs:
             echo "Image 'immortalwrt:initial-arm64' not found. Rebuilding..."
             docker build -t immortalwrt:initial-arm64 --platform linux/arm64 ./src/arm64
           fi
-  
-      - name: Run container and modify arm64
+
+      - name: Run container arm64
         run: |
           docker run -d --name immortalwrt-arm64 --platform linux/arm64 immortalwrt:initial-arm64 /bin/sh -c "while true; do sleep 1000; done"
+          
+      - name: Modify network configuration
+        run: |
           docker exec immortalwrt-arm64 sh -c "cat <<EOF > /etc/config/network
             config interface 'loopback'
             	option device 'lo'
@@ -172,20 +175,26 @@ jobs:
             	option dns '223.5.5.5 1.1.1.1'
             	option device 'eth0'
             EOF"
-            docker exec immortalwrt-arm64 sh -c "opkg update; \
-            opkg install luci-i18n-ttyd-zh-cn; \
-            opkg install luci-i18n-filebrowser-go-zh-cn; \
-            opkg install luci-i18n-argon-config-zh-cn; \
-            opkg install openssh-sftp-server; \
-            opkg install luci-i18n-samba4-zh-cn"
+
+      - name: Install packages
+        run: |
+          docker exec immortalwrt-arm64 sh -c "opkg update; \
+          opkg install luci-i18n-ttyd-zh-cn; \
+          opkg install luci-i18n-filebrowser-go-zh-cn; \
+          opkg install luci-i18n-argon-config-zh-cn; \
+          opkg install openssh-sftp-server; \
+          opkg install luci-i18n-samba4-zh-cn"
+      
+      - name: Commit modified container
+        run: |
           docker commit immortalwrt-arm64 immortalwrt:initial-arm64
           
       - name: Push modified Docker image arm64
         run: |
-          docker tag immortalwrt:initial-arm64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-arm
-          docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-arm
           docker tag immortalwrt:initial-arm64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:arm
           docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:arm
+          docker tag immortalwrt:initial-arm64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-arm
+          docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-arm
           docker tag immortalwrt:initial-arm64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:latest
           
