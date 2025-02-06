@@ -179,16 +179,6 @@ jobs:
       - name: Ensure /var/lock directory exists in immortalwrt-arm64
         run: |
           docker exec immortalwrt-arm64 sh -c "mkdir -p /var/lock"
-      
-      - name: Update opkg sources
-        run: |
-          docker exec immortalwrt-arm64 sh -c "cat <<EOF > /etc/opkg/distfeeds.conf
-          src/gz openwrt_core https://downloads.openwrt.org/releases/24.10-SNAPSHOT/targets/mediatek/filogic/packages
-          src/gz openwrt_base https://downloads.openwrt.org/releases/24.10-SNAPSHOT/packages/aarch64_cortex-a53/base
-          src/gz openwrt_luci https://downloads.openwrt.org/releases/24.10-SNAPSHOT/packages/aarch64_cortex-a53/luci
-          src/gz openwrt_packages https://downloads.openwrt.org/releases/24.10-SNAPSHOT/packages/aarch64_cortex-a53/packages
-          src/gz openwrt_routing https://downloads.openwrt.org/releases/24.10-SNAPSHOT/packages/aarch64_cortex-a53/routing
-          EOF"
           
       - name: Install packages in immortalwrt-arm64
         run: |
@@ -196,7 +186,8 @@ jobs:
           opkg install luci-i18n-ttyd-zh-cn; \
           opkg install luci-i18n-filebrowser-go-zh-cn; \
           opkg install luci-i18n-argon-config-zh-cn; \
-          opkg install openssh-sftp-server"
+          opkg install openssh-sftp-serve; \
+          opkg install curl"
 
       - name: Download and run imm.sh
         run: |
