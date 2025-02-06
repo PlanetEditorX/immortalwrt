@@ -136,16 +136,16 @@ jobs:
       - name: Install packages in immortalwrt-arm64
         run: |
           docker exec immortalwrt-arm64 sh -c "opkg update; \
+          opkg install curl; \
           opkg install luci-i18n-ttyd-zh-cn; \
           opkg install luci-i18n-filebrowser-go-zh-cn; \
           opkg install luci-i18n-argon-config-zh-cn; \
-          opkg install openssh-sftp-server; \
-          opkg install curl"
+          opkg install openssh-sftp-server"
 
       - name: Download and run istore-reinstall.run
         run: |
-          docker exec immortalwrt-amd64 sh -c "mkdir -p /tmp/is-root/var/lock"
-          docker exec immortalwrt-amd64 sh -c "cd /tmp && wget -O istore-reinstall.run https://raw.githubusercontent.com/PlanetEditorX/immortalwrt/refs/heads/main/src/istore-reinstall.run && chmod 755 istore-reinstall.run && ./istore-reinstall.run"
+          docker exec immortalwrt-arm64 sh -c "mkdir -p /tmp/is-root/var/lock"
+          docker exec immortalwrt-arm64 sh -c "cd /tmp && wget -O istore-reinstall.run https://raw.githubusercontent.com/PlanetEditorX/immortalwrt/refs/heads/main/src/istore-reinstall.run && chmod 755 istore-reinstall.run && ./istore-reinstall.run"
 
       - name: Install luci-i18n-quickstart-zh-cn
         run: |
