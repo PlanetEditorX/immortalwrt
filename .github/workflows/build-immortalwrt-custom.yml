@@ -143,25 +143,15 @@ jobs:
           tags: immortalwrt:initial-arm64
           push: false  # 不推送镜像
 
-      - name: List local Docker images
-        run: docker images
-
-      - name: Ensure Docker image exists
-        run: |
-          if ! docker image inspect immortalwrt:initial-arm64 &> /dev/null; then
-            echo "Image 'immortalwrt:initial-arm64' not found. Rebuilding..."
-            docker build -t immortalwrt:initial-arm64 --platform linux/arm64 ./src/arm64
-          fi
-
-      - name: Run container arm64
+      - name: Run container in immortalwrt-arm64
         run: |
           docker run -d --name immortalwrt-arm64 --platform linux/arm64 --privileged immortalwrt:initial-arm64 /bin/sh -c "while true; do sleep 1000; done"
 
-      - name: Ensure /var/lock directory exists
+      - name: Ensure /var/lock directory exists in immortalwrt-arm64
         run: |
           docker exec immortalwrt-arm64 sh -c "mkdir -p /var/lock"
     
-      - name: Modify network configuration
+      - name: Modify network configuration in immortalwrt-arm64
         run: |
           docker exec immortalwrt-arm64 sh -c "cat <<EOF > /etc/config/network
             config interface 'loopback'
@@ -180,14 +170,13 @@ jobs:
             	option device 'eth0'
             EOF"
 
-      - name: Install packages
+      - name: Install packages in immortalwrt-arm64
         run: |
           docker exec immortalwrt-arm64 sh -c "opkg update; \
           opkg install luci-i18n-ttyd-zh-cn; \
           opkg install luci-i18n-filebrowser-go-zh-cn; \
           opkg install luci-i18n-argon-config-zh-cn; \
-          opkg install openssh-sftp-server; \
-          opkg install luci-i18n-samba4-zh-cn"
+          opkg install openssh-sftp-server"
       
       - name: Commit modified container
         run: |
