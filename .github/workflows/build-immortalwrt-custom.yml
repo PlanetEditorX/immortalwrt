@@ -104,8 +104,8 @@ jobs:
         run: |
           mkdir -p ./src/amd64
           mkdir -p ./src/arm64
-          mv immortalwrt/rootfs_amd64.tar ./src/amd64
-          mv immortalwrt/rootfs_arm64.tar ./src/arm64
+          mv immortalwrt/rootfs_amd64.tar ./src/amd64/rootfs.tar
+          mv immortalwrt/rootfs_arm64.tar ./src/arm64/rootfs.tar
 
       - name: Build initial Docker image
         run: |
