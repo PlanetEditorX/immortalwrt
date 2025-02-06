@@ -172,6 +172,12 @@ jobs:
             	option dns '223.5.5.5 1.1.1.1'
             	option device 'eth0'
             EOF"
+            docker exec immortalwrt-arm64 sh -c "opkg update; \
+            opkg install luci-i18n-ttyd-zh-cn; \
+            opkg install luci-i18n-filebrowser-go-zh-cn; \
+            opkg install luci-i18n-argon-config-zh-cn; \
+            opkg install openssh-sftp-server; \
+            opkg install luci-i18n-samba4-zh-cn"
           docker commit immortalwrt-arm64 immortalwrt:initial-arm64
           
       - name: Push modified Docker image arm64
