@@ -163,7 +163,13 @@ jobs:
       - name: Del unuse files in immortalwrt-arm64
         run: |
           docker exec immortalwrt-arm64 sh -c "rm -rf /tmp/ipk"
-          
+
+      - name: Copy core in immortalwrt-arm64
+        run: |
+          tar -xzf ./src/core/clash-linux-arm64.tar.gz
+          mv ./src/core/clash ./src/core/clash_meta
+          docker cp ./src/core/clash_meta immortalwrt-arm64:/etc/openclash/core/
+        
       - name: Commit modified container
         run: |
           docker exec immortalwrt-arm64 sh -c "cat <<EOF > /etc/config/network
