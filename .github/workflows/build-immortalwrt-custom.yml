@@ -135,13 +135,16 @@ jobs:
   
       - name: Copy and install ipk in immortalwrt-arm64
         run: |
-          docker exec immortalwrt-arm64 sh -c "mkdir -p /tmp/ipk"
-          docker cp ./src/ipk/arm immortalwrt-arm64:/tmp/ipk
+          docker cp ./src/ipk/arm/ immortalwrt-arm64:/tmp/ipk/
           docker exec immortalwrt-arm64 sh -c "
             cd /tmp/ipk/
-            ls
+            opkg install *.ipk
           "
-  
+      
+      - name: Del unuse files in immortalwrt-arm64
+        run: |
+          docker exec immortalwrt-arm64 sh -c "rm -rf /tmp/ipk"
+          
       - name: Install packages in immortalwrt-arm64
         run: |
           docker exec immortalwrt-arm64 sh -c "opkg update; \
