@@ -138,7 +138,6 @@ jobs:
           docker exec immortalwrt-arm64 sh -c "opkg update; \
           opkg install curl; \
           opkg install luci-i18n-ttyd-zh-cn; \
-          opkg install luci-i18n-filebrowser-go-zh-cn; \
           opkg install luci-i18n-argon-config-zh-cn; \
           opkg install openssh-sftp-server"
 
@@ -184,7 +183,6 @@ jobs:
           docker exec immortalwrt-amd64 sh -c "opkg update; \
           opkg install curl; \
           opkg install luci-i18n-ttyd-zh-cn; \
-          opkg install luci-i18n-filebrowser-go-zh-cn; \
           opkg install luci-i18n-argon-config-zh-cn; \
           opkg install openssh-sftp-server"
 
