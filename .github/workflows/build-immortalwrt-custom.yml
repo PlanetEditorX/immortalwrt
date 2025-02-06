@@ -102,7 +102,6 @@ jobs:
       - name: Build initial Docker image
         run: |
           cp ./src/Dockerfile ./src/amd64
-          cp ./src/Dockerfile ./src/arm64
           docker build -t immortalwrt:initial-amd64 ./src/amd64
 
       - name: Run container and modify amd64
@@ -138,7 +137,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: ./src/arm64
-          file: Dockerfile
+          file: ./src/Dockerfile
           platforms: linux/arm64
           tags: immortalwrt:initial-arm64
           push: false  # 不推送镜像
