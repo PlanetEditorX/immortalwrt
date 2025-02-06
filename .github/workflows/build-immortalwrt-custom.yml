@@ -108,23 +108,6 @@ jobs:
       - name: Run container and modify amd64
         run: |
           docker run -d --name immortalwrt-amd64 immortalwrt:initial-amd64 /bin/sh -c "while true; do sleep 1000; done"
-          docker exec immortalwrt-amd64 sh -c "cat <<EOF > /etc/config/network
-            config interface 'loopback'
-            	option device 'lo'
-            	option proto 'static'
-            	option ipaddr '127.0.0.1'
-            	option netmask '255.0.0.0'
-            
-            config interface 'lan'
-            	option proto 'static'
-            	option netmask '255.255.255.0'
-            	option ip6assign '60'
-            	option ipaddr '${{ github.event.inputs.ipaddr }}'
-            	option gateway '${{ github.event.inputs.gateway }}'
-            	option dns '223.5.5.5 1.1.1.1'
-            	option device 'eth0'
-            EOF"
-          docker commit immortalwrt-amd64 immortalwrt:initial-amd64
 
       - name: Ensure /var/lock directory exists in immortalwrt-amd64
         run: |
@@ -155,6 +138,22 @@ jobs:
 
       - name: Commit modified container
         run: |
+          docker exec immortalwrt-amd64 sh -c "cat <<EOF > /etc/config/network
+            config interface 'loopback'
+            	option device 'lo'
+            	option proto 'static'
+            	option ipaddr '127.0.0.1'
+            	option netmask '255.0.0.0'
+            
+            config interface 'lan'
+            	option proto 'static'
+            	option netmask '255.255.255.0'
+            	option ip6assign '60'
+            	option ipaddr '${{ github.event.inputs.ipaddr }}'
+            	option gateway '${{ github.event.inputs.gateway }}'
+            	option dns '223.5.5.5 1.1.1.1'
+            	option device 'eth0'
+            EOF"
           docker commit immortalwrt-amd64 immortalwrt:amd64
           
       - name: Push modified Docker image amd64
@@ -187,25 +186,6 @@ jobs:
       - name: Run container in immortalwrt-arm64
         run: |
           docker run -d --name immortalwrt-arm64 --platform linux/arm64 --privileged immortalwrt:initial-arm64 /bin/sh -c "while true; do sleep 1000; done"
-    
-      - name: Modify network configuration in immortalwrt-arm64
-        run: |
-          docker exec immortalwrt-arm64 sh -c "cat <<EOF > /etc/config/network
-            config interface 'loopback'
-            	option device 'lo'
-            	option proto 'static'
-            	option ipaddr '127.0.0.1'
-            	option netmask '255.0.0.0'
-            
-            config interface 'lan'
-            	option proto 'static'
-            	option netmask '255.255.255.0'
-            	option ip6assign '60'
-            	option ipaddr '${{ github.event.inputs.ipaddr }}'
-            	option gateway '${{ github.event.inputs.gateway }}'
-            	option dns '223.5.5.5 1.1.1.1'
-            	option device 'eth0'
-            EOF"
 
       - name: Ensure /var/lock directory exists in immortalwrt-arm64
         run: |
@@ -223,7 +203,7 @@ jobs:
       - name: Download and run istore-reinstall.run
         run: |
           docker exec immortalwrt-amd64 sh -c "mkdir -p /tmp/is-root/var/lock"
-          docker exec immortalwrt-amd64 sh -c "cd /tmp && wget -O istore-reinstall.run https://github.com/linkease/openwrt-app-actions/raw/main/applications/luci-app-systools/root/usr/share/systools/istore-reinstall.run && chmod 755 istore-reinstall.run && ./istore-reinstall.run"
+          docker exec immortalwrt-amd64 sh -c "cd /tmp && wget -O imm.run https://cafe.cpolar.top/wkdaily/zero3/raw/branch/main/zero3/imm.sh && chmod 755 imm.run && ./imm.run"
 
       - name: Install luci-i18n-quickstart-zh-cn
         run: |
@@ -236,6 +216,22 @@ jobs:
 
       - name: Commit modified container
         run: |
+          docker exec immortalwrt-arm64 sh -c "cat <<EOF > /etc/config/network
+            config interface 'loopback'
+            	option device 'lo'
+            	option proto 'static'
+            	option ipaddr '127.0.0.1'
+            	option netmask '255.0.0.0'
+            
+            config interface 'lan'
+            	option proto 'static'
+            	option netmask '255.255.255.0'
+            	option ip6assign '60'
+            	option ipaddr '${{ github.event.inputs.ipaddr }}'
+            	option gateway '${{ github.event.inputs.gateway }}'
+            	option dns '223.5.5.5 1.1.1.1'
+            	option device 'eth0'
+            EOF"
           docker commit immortalwrt-arm64 immortalwrt:arm64
           
       - name: Push modified Docker image arm64
