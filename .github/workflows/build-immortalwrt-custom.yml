@@ -125,7 +125,36 @@ jobs:
             	option device 'eth0'
             EOF"
           docker commit immortalwrt-amd64 immortalwrt:initial-amd64
+
+      - name: Ensure /var/lock directory exists in immortalwrt-amd64
+        run: |
+          docker exec immortalwrt-amd64 sh -c "mkdir -p /var/lock"
           
+      - name: Install packages in immortalwrt-amd64
+        run: |
+          docker exec immortalwrt-amd64 sh -c "opkg update; \
+          opkg install luci-i18n-ttyd-zh-cn; \
+          opkg install luci-i18n-filebrowser-go-zh-cn; \
+          opkg install luci-i18n-argon-config-zh-cn; \
+          opkg install openssh-sftp-server; \
+          opkg install curl"
+
+      - name: Download and run imm.sh
+        run: |
+          docker exec immortalwrt-amd64 sh -c "mkdir -p /tmp/is-root/var/lock"
+          docker exec immortalwrt-amd64 sh -c "wget -qO imm.sh https://cafe.cpolar.top/wkdaily/zero3/raw/branch/main/zero3/imm.sh && chmod +x imm.sh && ./imm.sh"
+
+      - name: Install luci-i18n-quickstart-zh-cn
+        run: |
+          docker exec immortalwrt-amd64 sh -c "/tmp/is-opkg opkg install luci-i18n-quickstart-zh-cn"
+        continue-on-error: true  # 如果步骤失败，继续执行后续步骤
+        
+      - name: Install Are-u-ok
+        run: |
+          docker exec immortalwrt-amd64 sh -c "wget -qO PassWall2.sh https://github.com/AUK9527/Are-u-ok/raw/main/x86/all/PassWall2_1.30-3_x86_64_all_sdk_22.03.7.run && chmod +x PassWall2.sh && ./PassWall2.sh"
+          docker exec immortalwrt-amd64 sh -c "wget -qO OpenClash.sh https://github.com/AUK9527/Are-u-ok/raw/main/x86/all/OpenClash_0.46.014+x86_64_core.run && chmod +x OpenClash.sh && ./OpenClash.sh"
+        continue-on-error: true  # 如果步骤失败，继续执行后续步骤
+      
       # - name: Push modified Docker image amd64
       #   run: |
       #     docker tag immortalwrt:initial-amd64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-amd
@@ -209,14 +238,14 @@ jobs:
         run: |
           docker commit immortalwrt-arm64 immortalwrt:initial-arm64
           
-      - name: Push modified Docker image arm64
-        run: |
-          docker tag immortalwrt:initial-arm64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:arm
-          docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:arm
-          docker tag immortalwrt:initial-arm64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-arm
-          docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-arm
-          docker tag immortalwrt:initial-arm64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:latest
-          docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:latest
+      # - name: Push modified Docker image arm64
+      #   run: |
+      #     docker tag immortalwrt:initial-arm64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:arm
+      #     docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:arm
+      #     docker tag immortalwrt:initial-arm64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-arm
+      #     docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-arm
+      #     docker tag immortalwrt:initial-arm64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:latest
+      #     docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:latest
           
           
 
