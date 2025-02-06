@@ -2,7 +2,7 @@ name: Build Immortalwrt Custom
 
 on:
   schedule:
-    - cron: '0 18 * * 1'  # 每周一的下午 6 点（UTC 时间）
+    - cron: '0 10 * * 1'  # 每周一的上午10点（UTC时间，对应北京时间下午6点）
   workflow_dispatch:
     inputs:
       version:
@@ -17,10 +17,7 @@ on:
         description: '输入默认网关'
         required: true
         default: '192.168.3.1'
-      platform:
-        description: '选择目标平台 (amd64 或 arm64)'
-        required: true
-        default: 'arm64'
+
 jobs:
   docker:
     runs-on: ubuntu-latest
@@ -93,32 +90,31 @@ jobs:
           images: yexundao/immortalwrt
           tags: |
                 type=raw,value=${{ steps.final_tags.outputs.tags }}
-                type=raw,value=latest
 
       - name: Download and Extract RootFS
         run: |
-          mkdir -p imm
-          cd imm
-          if [ "${{ github.event.inputs.platform }}" == "amd64" ]; then
-            wget -O rootfs.tar.gz https://downloads.immortalwrt.org/releases/24.10.0-rc3/targets/x86/64/immortalwrt-24.10.0-rc3-x86-64-rootfs.tar.gz
-          elif [ "${{ github.event.inputs.platform }}" == "arm64" ]; then
-            wget -O rootfs.tar.gz https://downloads.immortalwrt.org/releases/24.10.0-rc3/targets/armsr/armv8/immortalwrt-24.10.0-rc3-armsr-armv8-rootfs.tar.gz
-          else
-            echo "Unsupported platform: ${{ github.event.inputs.platform }}"
-            exit 1
-          fi
-          gzip -d rootfs.tar.gz
+          mkdir -p immortalwrt
+          cd immortalwrt
+          wget -O rootfs_amd64.tar.gz https://downloads.immortalwrt.org/releases/24.10.0-rc3/targets/x86/64/immortalwrt-24.10.0-rc3-x86-64-rootfs.tar.gz
+          wget -O rootfs_arm64.tar.gz https://downloads.immortalwrt.org/releases/24.10.0-rc3/targets/armsr/armv8/immortalwrt-24.10.0-rc3-armsr-armv8-rootfs.tar.gz
+          gzip -d rootfs_amd64.tar.gz
+          gzip -d rootfs_arm64.tar.gz
 
       - name: Move rootfs.tar.gz to build context
-        run: mv imm/rootfs.tar ./src/
+        run: |
+          mkdir -p ./src/amd64
+          mkdir -p ./src/arm64
+          mv immortalwrt/rootfs_amd64.tar ./src/amd64
+          mv immortalwrt/rootfs_arm64.tar ./src/arm64
 
       - name: Build initial Docker image
         run: |
-          docker build -t immortalwrt:initial ./src
+          docker build -t immortalwrt:initial-amd64 ./src/amd64
+          docker build -t immortalwrt:initial-arm64 ./src/arm64
 
-      - name: Run container and modify
+      - name: Run container and modify amd64
         run: |
-          docker run -d --name immortalwrt immortalwrt:initial /bin/sh -c "while true; do sleep 1000; done"
+          docker run -d --name immortalwrt-amd64 immortalwrt:initial-amd64 /bin/sh -c "while true; do sleep 1000; done"
           docker exec immortalwrt sh -c "cat <<EOF > /etc/config/network
             config interface 'loopback'
             	option device 'lo'
@@ -135,10 +131,10 @@ jobs:
             	option dns '223.5.5.5 1.1.1.1'
             	option device 'eth0'
             EOF"
-          docker commit immortalwrt immortalwrt:modified
+          docker commit immortalwrt-amd64 immortalwrt:initial-amd64
           
-      - name: Push modified Docker image
+      - name: Push modified Docker image amd64
         run: |
-          docker tag immortalwrt:modified ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.meta.outputs.tags }}
+          docker tag immortalwrt:initial-amd64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.meta.outputs.tags }}
           docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.meta.outputs.tags }}
           
