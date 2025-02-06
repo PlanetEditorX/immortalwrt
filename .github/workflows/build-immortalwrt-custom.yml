@@ -131,4 +131,37 @@ jobs:
         run: |
           docker tag immortalwrt:initial-amd64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-amd
           docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-amd
+          docker tag immortalwrt:initial-amd64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:amd
+          docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:amd
+
+      - name: Run container and modify arm64
+        run: |
+          docker run -d --name immortalwrt-arm64 immortalwrt:initial-arm64 /bin/sh -c "while true; do sleep 1000; done"
+          docker exec immortalwrt-arm64 sh -c "cat <<EOF > /etc/config/network
+            config interface 'loopback'
+            	option device 'lo'
+            	option proto 'static'
+            	option ipaddr '127.0.0.1'
+            	option netmask '255.0.0.0'
+            
+            config interface 'lan'
+            	option proto 'static'
+            	option netmask '255.255.255.0'
+            	option ip6assign '60'
+            	option ipaddr '${{ github.event.inputs.ipaddr }}'
+            	option gateway '${{ github.event.inputs.gateway }}'
+            	option dns '223.5.5.5 1.1.1.1'
+            	option device 'eth0'
+            EOF"
+          docker commit immortalwrt-arm64 immortalwrt:initial-arm64
+          
+      - name: Push modified Docker image arm64
+        run: |
+          docker tag immortalwrt:initial-arm64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-arm
+          docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-arm
+          docker tag immortalwrt:initial-arm64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:arm
+          docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:arm
+          docker tag immortalwrt:initial-arm64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:latest
+          
           
