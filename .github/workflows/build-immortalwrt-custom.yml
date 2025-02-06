@@ -141,6 +141,7 @@ jobs:
           opkg install luci-i18n-argon-config-zh-cn"
 
       - name: Download and run istore-reinstall.run
+        continue-on-error: true
         run: |
           docker exec immortalwrt-arm64 sh -c "mkdir -p /tmp/is-root/var/lock"
           docker exec immortalwrt-arm64 sh -c "cd /tmp && wget -O istore-reinstall.run https://raw.githubusercontent.com/PlanetEditorX/immortalwrt/refs/heads/main/src/istore-reinstall.run && chmod 755 istore-reinstall.run && ./istore-reinstall.run"
