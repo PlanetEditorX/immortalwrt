@@ -138,8 +138,7 @@ jobs:
           docker exec immortalwrt-arm64 sh -c "opkg update; \
           opkg install curl; \
           opkg install luci-i18n-ttyd-zh-cn; \
-          opkg install luci-i18n-argon-config-zh-cn; \
-          opkg install openssh-sftp-server"
+          opkg install luci-i18n-argon-config-zh-cn"
 
       - name: Download and run istore-reinstall.run
         run: |
