@@ -99,62 +99,11 @@ jobs:
           mv immortalwrt/rootfs_amd64.tar ./src/amd64/rootfs.tar
           mv immortalwrt/rootfs_arm64.tar ./src/arm64/rootfs.tar
 
-      - name: Build initial Docker image
+      - name: Build AMD Docker image
         run: |
           cp ./src/Dockerfile ./src/amd64
           cp ./src/Dockerfile ./src/arm64
           docker build -t immortalwrt:initial-amd64 ./src/amd64
-
-      - name: Run container and modify amd64
-        run: |
-          docker run -d --name immortalwrt-amd64 immortalwrt:initial-amd64 /bin/sh -c "while true; do sleep 1000; done"
-
-      - name: Ensure /var/lock directory exists in immortalwrt-amd64
-        run: |
-          docker exec immortalwrt-amd64 sh -c "mkdir -p /var/lock"
-          
-      - name: Install packages in immortalwrt-amd64
-        run: |
-          docker exec immortalwrt-amd64 sh -c "opkg update; \
-          opkg install luci-i18n-ttyd-zh-cn; \
-          opkg install luci-i18n-filebrowser-go-zh-cn; \
-          opkg install luci-i18n-argon-config-zh-cn; \
-          opkg install openssh-sftp-server; \
-          opkg install curl"
-
-      - name: Download and run istore-reinstall.run
-        run: |
-          docker exec immortalwrt-amd64 sh -c "mkdir -p /tmp/is-root/var/lock"
-          docker exec immortalwrt-amd64 sh -c "cd /tmp && wget -O istore-reinstall.run https://github.com/linkease/openwrt-app-actions/raw/main/applications/luci-app-systools/root/usr/share/systools/istore-reinstall.run && chmod 755 istore-reinstall.run && ./istore-reinstall.run"
-
-      - name: Install luci-i18n-quickstart-zh-cn
-        run: |
-          docker exec immortalwrt-amd64 sh -c "/tmp/is-opkg opkg install luci-i18n-quickstart-zh-cn"
-        
-      - name: Install Are-u-ok
-        run: |
-          docker exec immortalwrt-amd64 sh -c "wget -qO PassWall2.sh https://github.com/AUK9527/Are-u-ok/raw/main/x86/all/PassWall2_1.30-3_x86_64_all_sdk_22.03.7.run && chmod +x PassWall2.sh && ./PassWall2.sh"
-          docker exec immortalwrt-amd64 sh -c "wget -qO OpenClash.sh https://github.com/AUK9527/Are-u-ok/raw/main/x86/all/OpenClash_0.46.014+x86_64_core.run && chmod +x OpenClash.sh && ./OpenClash.sh"
-
-      - name: Commit modified container
-        run: |
-          docker exec immortalwrt-amd64 sh -c "cat <<EOF > /etc/config/network
-            config interface 'loopback'
-            	option device 'lo'
-            	option proto 'static'
-            	option ipaddr '127.0.0.1'
-            	option netmask '255.0.0.0'
-            
-            config interface 'lan'
-            	option proto 'static'
-            	option netmask '255.255.255.0'
-            	option ip6assign '60'
-            	option ipaddr '${{ github.event.inputs.ipaddr }}'
-            	option gateway '${{ github.event.inputs.gateway }}'
-            	option dns '223.5.5.5 1.1.1.1'
-            	option device 'eth0'
-            EOF"
-          docker commit immortalwrt-amd64 immortalwrt:amd64
 
       - name: Build ARM Docker image
         id: build
@@ -226,6 +175,57 @@ jobs:
             	option device 'eth0'
             EOF"
           docker commit immortalwrt-arm64 immortalwrt:arm64
+      
+      - name: Run container and modify amd64
+        run: |
+          docker run -d --name immortalwrt-amd64 immortalwrt:initial-amd64 /bin/sh -c "while true; do sleep 1000; done"
+
+      - name: Ensure /var/lock directory exists in immortalwrt-amd64
+        run: |
+          docker exec immortalwrt-amd64 sh -c "mkdir -p /var/lock"
+          
+      - name: Install packages in immortalwrt-amd64
+        run: |
+          docker exec immortalwrt-amd64 sh -c "opkg update; \
+          opkg install luci-i18n-ttyd-zh-cn; \
+          opkg install luci-i18n-filebrowser-go-zh-cn; \
+          opkg install luci-i18n-argon-config-zh-cn; \
+          opkg install openssh-sftp-server; \
+          opkg install curl"
+
+      - name: Download and run istore-reinstall.run
+        run: |
+          docker exec immortalwrt-amd64 sh -c "mkdir -p /tmp/is-root/var/lock"
+          docker exec immortalwrt-amd64 sh -c "cd /tmp && wget -O istore-reinstall.run https://github.com/linkease/openwrt-app-actions/raw/main/applications/luci-app-systools/root/usr/share/systools/istore-reinstall.run && chmod 755 istore-reinstall.run && ./istore-reinstall.run"
+
+      - name: Install luci-i18n-quickstart-zh-cn
+        run: |
+          docker exec immortalwrt-amd64 sh -c "/tmp/is-opkg opkg install luci-i18n-quickstart-zh-cn"
+        
+      - name: Install Are-u-ok
+        run: |
+          docker exec immortalwrt-amd64 sh -c "wget -qO PassWall2.sh https://github.com/AUK9527/Are-u-ok/raw/main/x86/all/PassWall2_1.30-3_x86_64_all_sdk_22.03.7.run && chmod +x PassWall2.sh && ./PassWall2.sh"
+          docker exec immortalwrt-amd64 sh -c "wget -qO OpenClash.sh https://github.com/AUK9527/Are-u-ok/raw/main/x86/all/OpenClash_0.46.014+x86_64_core.run && chmod +x OpenClash.sh && ./OpenClash.sh"
+
+      - name: Commit modified container
+        run: |
+          docker exec immortalwrt-amd64 sh -c "cat <<EOF > /etc/config/network
+            config interface 'loopback'
+            	option device 'lo'
+            	option proto 'static'
+            	option ipaddr '127.0.0.1'
+            	option netmask '255.0.0.0'
+            
+            config interface 'lan'
+            	option proto 'static'
+            	option netmask '255.255.255.0'
+            	option ip6assign '60'
+            	option ipaddr '${{ github.event.inputs.ipaddr }}'
+            	option gateway '${{ github.event.inputs.gateway }}'
+            	option dns '223.5.5.5 1.1.1.1'
+            	option device 'eth0'
+            EOF"
+          docker commit immortalwrt-amd64 immortalwrt:amd64
 
       - name: Push modified Docker image amd64
         run: |
