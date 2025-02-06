@@ -5,10 +5,6 @@ on:
     - cron: '0 10 * * 1'  # 每周一的上午10点（UTC时间，对应北京时间下午6点）
   workflow_dispatch:
     inputs:
-      version:
-        description: '输入版本号,格式为X.Y.Z,为空则版本号加1'
-        required: false
-        default: ''
       ipaddr:
         description: '输入后台IP'
         required: true
@@ -17,6 +13,10 @@ on:
         description: '输入默认网关'
         required: true
         default: '192.168.3.1'
+      version:
+        description: '输入版本号,格式为X.Y.Z,为空则版本号加1'
+        required: false
+        default: ''
 
 jobs:
   docker:
@@ -117,7 +117,7 @@ jobs:
       - name: Run container and modify amd64
         run: |
           docker run -d --name immortalwrt-amd64 immortalwrt:initial-amd64 /bin/sh -c "while true; do sleep 1000; done"
-          docker exec immortalwrt sh -c "cat <<EOF > /etc/config/network
+          docker exec immortalwrt-amd64 sh -c "cat <<EOF > /etc/config/network
             config interface 'loopback'
             	option device 'lo'
             	option proto 'static'
