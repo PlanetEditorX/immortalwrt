@@ -155,8 +155,12 @@ jobs:
 
       - name: Run container arm64
         run: |
-          docker run -d --name immortalwrt-arm64 --platform linux/arm64 immortalwrt:initial-arm64 /bin/sh -c "while true; do sleep 1000; done"
-          
+          docker run -d --name immortalwrt-arm64 --platform linux/arm64 --privileged immortalwrt:initial-arm64 /bin/sh -c "while true; do sleep 1000; done"
+
+      - name: Ensure /var/lock directory exists
+        run: |
+          docker exec immortalwrt-arm64 sh -c "mkdir -p /var/lock"
+    
       - name: Modify network configuration
         run: |
           docker exec immortalwrt-arm64 sh -c "cat <<EOF > /etc/config/network
