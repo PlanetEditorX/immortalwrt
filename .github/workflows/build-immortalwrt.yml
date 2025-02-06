@@ -4,8 +4,8 @@ on:
   # push:
   #   tags:
   #     - "v*"
-  schedule:
-    - cron: '0 17 * * 1'  # 每周一的下午 5 点（UTC 时间）
+  # schedule:
+  #   - cron: '0 17 * * 1'  # 每周一的下午 5 点（UTC 时间）
   workflow_dispatch:
     inputs:
       version:
