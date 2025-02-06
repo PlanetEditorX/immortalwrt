@@ -155,6 +155,7 @@ jobs:
         run: |
           docker cp ./src/ipk/ immortalwrt-arm64:/tmp/ipk/
           docker exec immortalwrt-arm64 sh -c "
+            mkdir -p /tmp/log/
             cd /tmp/ipk/
             opkg update
             opkg install coreutils-nohup bash iptables dnsmasq-full curl ca-certificates ipset ip-full iptables-mod-tproxy iptables-mod-extra libcap libcap-bin ruby ruby-yaml kmod-tun kmod-inet-diag unzip luci-compat luci luci-base
