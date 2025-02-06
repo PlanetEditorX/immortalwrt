@@ -139,10 +139,10 @@ jobs:
           opkg install openssh-sftp-server; \
           opkg install curl"
 
-      - name: Download and run imm.sh
+      - name: Download and run istore-reinstall.run
         run: |
           docker exec immortalwrt-amd64 sh -c "mkdir -p /tmp/is-root/var/lock"
-          docker exec immortalwrt-amd64 sh -c "wget -qO imm.sh https://cafe.cpolar.top/wkdaily/zero3/raw/branch/main/zero3/imm.sh && chmod +x imm.sh && ./imm.sh"
+          docker exec immortalwrt-amd64 sh -c "cd /tmp && wget -O istore-reinstall.run https://github.com/linkease/openwrt-app-actions/raw/main/applications/luci-app-systools/root/usr/share/systools/istore-reinstall.run && chmod 755 istore-reinstall.run && ./istore-reinstall.run"
 
       - name: Install luci-i18n-quickstart-zh-cn
         run: |
