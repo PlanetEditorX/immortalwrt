@@ -104,7 +104,6 @@ jobs:
           cp ./src/Dockerfile ./src/amd64
           cp ./src/Dockerfile ./src/arm64
           docker build -t immortalwrt:initial-amd64 ./src/amd64
-          docker build -t immortalwrt:initial-arm64 ./src/arm64
 
       - name: Run container and modify amd64
         run: |
@@ -134,6 +133,16 @@ jobs:
           docker tag immortalwrt:initial-amd64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:amd
           docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:amd
 
+      - name: Build ARM Docker image
+        id: build
+        uses: docker/build-push-action@v4
+        with:
+          context: ./src/arm64
+          file: Dockerfile
+          platforms: linux/arm64
+          tags: immortalwrt:initial-arm64
+          push: false  # 不推送镜像
+  
       - name: Run container and modify arm64
         run: |
           docker run -d --name immortalwrt-arm64 immortalwrt:initial-arm64 /bin/sh -c "while true; do sleep 1000; done"
