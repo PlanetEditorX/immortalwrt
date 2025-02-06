@@ -9,6 +9,14 @@ on:
         description: '输入版本号,格式为X.Y.Z,为空则版本号加1'
         required: false
         default: ''
+      ipaddr:
+        description: '输入后台IP'
+        required: true
+        default: '192.168.3.100'
+      gateway:
+        description: '输入默认网关'
+        required: true
+        default: '192.168.3.1'
 jobs:
   docker:
     runs-on: ubuntu-latest
@@ -92,13 +100,34 @@ jobs:
 
       - name: Move rootfs.tar.gz to build context
         run: mv imm/rootfs.tar ./src/
-  
-      - name: Build and push
-        uses: docker/build-push-action@v5
-        with:
-          context: ./src
-          file: ./src/Dockerfile
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Build initial Docker image
+        run: |
+          docker build -t immortalwrt:initial ./src
+
+      - name: Run container and modify
+        run: |
+          docker run -d --name immortalwrt immortalwrt:initial /bin/sh -c "while true; do sleep 1000; done"
+          docker exec immortalwrt sh -c "cat <<EOF > /etc/config/network
+            config interface 'loopback'
+            	option device 'lo'
+            	option proto 'static'
+            	option ipaddr '127.0.0.1'
+            	option netmask '255.0.0.0'
+            
+            config interface 'lan'
+            	option proto 'static'
+            	option netmask '255.255.255.0'
+            	option ip6assign '60'
+            	option ipaddr '${{ github.event.inputs.ipaddr }}'
+            	option gateway '${{ github.event.inputs.gateway }}'
+            	option dns '223.5.5.5 1.1.1.1'
+            	option device 'eth0'
+            EOF"
+          docker commit immortalwrt immortalwrt:modified
+          
+      - name: Push modified Docker image
+        run: |
+          docker tag immortalwrt:modified ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.meta.outputs.tags }}
+          docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.meta.outputs.tags }}
+          
