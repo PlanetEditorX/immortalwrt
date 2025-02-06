@@ -155,6 +155,7 @@ jobs:
       #     docker exec immortalwrt-arm64 sh -c "/tmp/is-opkg opkg install luci-i18n-quickstart-zh-cn"
 
       - name: Copy and install Are-u-ok in immortalwrt-arm64
+        continue-on-error: true
         run: |
           docker cp ./src/ipk/ immortalwrt-arm64:/tmp/ipk/
           docker exec immortalwrt-arm64 sh -c "
