@@ -126,12 +126,12 @@ jobs:
             EOF"
           docker commit immortalwrt-amd64 immortalwrt:initial-amd64
           
-      - name: Push modified Docker image amd64
-        run: |
-          docker tag immortalwrt:initial-amd64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-amd
-          docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-amd
-          docker tag immortalwrt:initial-amd64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:amd
-          docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:amd
+      # - name: Push modified Docker image amd64
+      #   run: |
+      #     docker tag immortalwrt:initial-amd64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-amd
+      #     docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-amd
+      #     docker tag immortalwrt:initial-amd64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:amd
+      #     docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:amd
 
       - name: Build ARM Docker image
         id: build
