@@ -219,8 +219,7 @@ jobs:
           opkg install luci-i18n-ttyd-zh-cn; \
           opkg install luci-i18n-filebrowser-go-zh-cn; \
           opkg install luci-i18n-argon-config-zh-cn; \
-          opkg install openssh-sftp-server; \
-          opkg install curl"
+          opkg install openssh-sftp-server"
 
       - name: Download and run istore-reinstall.run
         run: |
