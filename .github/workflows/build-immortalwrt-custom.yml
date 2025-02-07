@@ -217,7 +217,7 @@ jobs:
         run: |
           docker run -d --name immortalwrt-amd64 immortalwrt:initial-amd64 /bin/sh -c "while true; do sleep 1000; done"
 
-      - name: Ensure /var/lock directory exists in immortalwrt-amd64
+      - name: Ensure directory exists in immortalwrt-amd64
         run: |
           docker exec immortalwrt-amd64 sh -c "mkdir -p /tmp/log /var/lock"
           
