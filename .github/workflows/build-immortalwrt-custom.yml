@@ -14,12 +14,12 @@ on:
         required: true
         default: '192.168.3.1'
       arm_istore:
-        description: 'ARM是否安装iStore'
+        description: 'ARM版本是否安装iStore'
         required: false
         default: 'false'
         type: boolean
       amd_istore:
-        description: 'AMD是否安装iStore'
+        description: 'AMD版本是否安装iStore'
         required: false
         default: 'true'
         type: boolean        
