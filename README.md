@@ -33,7 +33,7 @@
   ```bash
   docker run --name immortalwrt -d --network macnet --privileged --restart=always yexundao/immortalwrt:latest /sbin/init
   ```
-  - 默认为arm版本的docker容器，启动后通过管理IP直接可以使用，无需后续操作
+  - 默认为arm版本，启动后通过管理IP直接使用，无需后续操作
 ### 7.进入容器
   ```bash
   docker exec -it immortalwrt sh
