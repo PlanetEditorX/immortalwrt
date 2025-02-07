@@ -179,6 +179,7 @@ jobs:
         run: |
           docker cp ./src/core/ immortalwrt-arm64:/tmp/core/
           docker exec immortalwrt-arm64 sh -c "
+            cd /tmp/core/
             tar -xzpf passwall-linux-arm64.tar.gz -C /usr/bin
             tar -xzpf clash-linux-arm64.tar.gz
             mv clash /etc/openclash/core/clash_meta
