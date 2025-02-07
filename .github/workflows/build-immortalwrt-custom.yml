@@ -180,9 +180,11 @@ jobs:
           docker cp ./src/core/ immortalwrt-arm64:/tmp/core/
           docker exec immortalwrt-arm64 sh -c "
             cd /tmp/core/
-            tar -xzpf passwall-linux-arm64.tar.gz -C /usr/bin
-            tar -xzpf clash-linux-arm64.tar.gz
+            tar -xzvpf passwall-linux-arm64.tar.gz -C /usr/bin
+            ls -l /usr/bin/sing-box /usr/bin/xray /usr/bin/hysteria
+            tar -xzvpf clash-linux-arm64.tar.gz
             mv clash /etc/openclash/core/clash_meta
+            ls -l /etc/openclash/core/clash_meta
           "
       - name: Del unuse files in immortalwrt-arm64
         run: |
