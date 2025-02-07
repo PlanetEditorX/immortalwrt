@@ -153,7 +153,7 @@ jobs:
             opkg install luci-i18n-argon-config-zh-cn
           "
 
-      - name: Download and run istore-reinstall.run in immortalwrt-arm64
+      - name: Download and Run istore-reinstall.run in immortalwrt-arm64
         if: ${{ github.event.inputs.arm_istore == 'true' }}
         continue-on-error: true
         run: |
@@ -181,7 +181,7 @@ jobs:
             echo 'Install PassWall2'
             cd ../passwall2
             opkg install *.ipk
-            cd passwall_packages_ipk_aarch64_cortex-a72
+            cd passwall_packages_ipk_aarch64_generic
             opkg install *.ipk
           "
 
@@ -230,7 +230,7 @@ jobs:
             opkg install openssh-sftp-server
           "
 
-      - name: Download and run istore-reinstall.run in immortalwrt-amd64
+      - name: Download and Run istore-reinstall.run in immortalwrt-amd64
         if: ${{ github.event.inputs.amd_istore == 'true' }}
         run: |
           docker exec immortalwrt-amd64 sh -c "mkdir -p /tmp/is-root/var/lock"
