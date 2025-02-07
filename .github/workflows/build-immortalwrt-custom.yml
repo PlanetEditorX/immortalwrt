@@ -187,8 +187,9 @@ jobs:
 
       - name: Copy core in immortalwrt-arm64
         run: |
-          docker cp ./src/core immortalwrt-arm64:/etc/openclash
-          docker exec immortalwrt-arm64 sh -c "chmod 755 /etc/openclash/core/clash_meta"
+          tar -xzf ./src/core/clash-linux-arm64.tar.gz
+          mv clash clash_meta
+          docker cp clash_meta immortalwrt-arm64:/etc/openclash/core/
     
       - name: Del unuse files in immortalwrt-arm64
         run: |
