@@ -150,14 +150,14 @@ jobs:
           opkg install curl
           opkg install luci-i18n-argon-config-zh-cn"
 
-      - name: Download and run istore-reinstall.run
+      - name: Download and run istore-reinstall.run in immortalwrt-arm64
         if: ${{ github.event.inputs.arm_istore == 'true' }}
         continue-on-error: true
         run: |
           docker exec immortalwrt-arm64 sh -c "mkdir -p /tmp/is-root/var/lock"
           docker exec immortalwrt-arm64 sh -c "cd /tmp && wget -O istore-reinstall.run https://raw.githubusercontent.com/PlanetEditorX/immortalwrt/refs/heads/main/src/istore-reinstall.run && chmod 755 istore-reinstall.run && ./istore-reinstall.run"
 
-      - name: Install luci-i18n-quickstart-zh-cn
+      - name: Install luci-i18n-quickstart-zh-cn in immortalwrt-arm64
         if: ${{ github.event.inputs.arm_istore == 'true' }}
         continue-on-error: true
         run: |
@@ -188,7 +188,7 @@ jobs:
         run: |
           docker exec immortalwrt-arm64 sh -c "rm -rf /tmp/ipk /tmp/core"
         
-      - name: Commit modified container
+      - name: Commit modified container in immortalwrt-arm64
         run: |
           docker exec immortalwrt-arm64 sh -c "cat <<EOF > /etc/config/network
             config interface 'loopback'
@@ -208,7 +208,7 @@ jobs:
             EOF"
           docker commit immortalwrt-arm64 immortalwrt:arm64
       
-      - name: Run container and modify amd64
+      - name: Run container and modify in immortalwrt-amd64
         run: |
           docker run -d --name immortalwrt-amd64 immortalwrt:initial-amd64 /bin/sh -c "while true; do sleep 1000; done"
 
@@ -225,24 +225,24 @@ jobs:
             opkg install openssh-sftp-server
           "
 
-      - name: Download and run istore-reinstall.run
+      - name: Download and run istore-reinstall.run in immortalwrt-amd64
         if: ${{ github.event.inputs.amd_istore == 'true' }}
         run: |
           docker exec immortalwrt-amd64 sh -c "mkdir -p /tmp/is-root/var/lock"
           docker exec immortalwrt-amd64 sh -c "cd /tmp && wget -O istore-reinstall.run https://github.com/linkease/openwrt-app-actions/raw/main/applications/luci-app-systools/root/usr/share/systools/istore-reinstall.run && chmod 755 istore-reinstall.run && ./istore-reinstall.run"
 
-      - name: Install luci-i18n-quickstart-zh-cn
+      - name: Install luci-i18n-quickstart-zh-cn in immortalwrt-amd64
         if: ${{ github.event.inputs.amd_istore == 'true' }}
         continue-on-error: true
         run: |
           docker exec immortalwrt-amd64 sh -c "/tmp/is-opkg opkg install luci-i18n-quickstart-zh-cn"
         
-      - name: Install Are-u-ok
+      - name: Install Are-u-ok in immortalwrt-amd64
         run: |
           docker exec immortalwrt-amd64 sh -c "wget -qO PassWall2.run https://github.com/AUK9527/Are-u-ok/raw/main/x86/all/PassWall2_1.30-3_x86_64_all_sdk_22.03.7.run && chmod +x PassWall2.run && ./PassWall2.run"
           docker exec immortalwrt-amd64 sh -c "wget -qO OpenClash.run https://github.com/AUK9527/Are-u-ok/raw/main/x86/all/OpenClash_0.46.014+x86_64_core.run && chmod +x OpenClash.run && ./OpenClash.run"
 
-      - name: Commit modified container
+      - name: Commit modified container in immortalwrt-amd64
         run: |
           docker exec immortalwrt-amd64 sh -c "cat <<EOF > /etc/config/network
             config interface 'loopback'
