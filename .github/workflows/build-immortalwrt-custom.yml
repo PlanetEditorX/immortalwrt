@@ -171,6 +171,7 @@ jobs:
         run: |
           docker exec immortalwrt-arm64 sh -c "
             cd /tmp/ipk/
+            ls -l
             echo "Update Package"
             opkg update
             echo "Install OpenClash"
@@ -186,15 +187,8 @@ jobs:
 
       - name: Copy core in immortalwrt-arm64
         run: |
-          docker cp ./src/core/ immortalwrt-arm64:/tmp/core/
-          docker exec immortalwrt-arm64 sh -c "
-            cd /tmp/core/
-            # tar -xzvpf passwall-linux-arm64.tar.gz -C /usr/bin
-            # ls -l /usr/bin/sing-box /usr/bin/xray /usr/bin/hysteria
-            tar -xzvpf clash-linux-arm64.tar.gz
-            mv clash /etc/openclash/core/clash_meta
-            ls -l /etc/openclash/core/clash_meta
-          "
+          docker cp ./src/core/ immortalwrt-arm64:/etc/openclash/core/
+    
       - name: Del unuse files in immortalwrt-arm64
         run: |
           docker exec immortalwrt-arm64 sh -c "rm -rf /tmp/ipk /tmp/core"
