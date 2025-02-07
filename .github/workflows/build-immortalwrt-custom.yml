@@ -13,6 +13,16 @@ on:
         description: '输入默认网关'
         required: true
         default: '192.168.3.1'
+      arm_istore:
+        description: 'ARM是否安装iStore'
+        required: false
+        default: 'false'
+        type: boolean
+      amd_istore:
+        description: 'AMD是否安装iStore'
+        required: false
+        default: 'true'
+        type: boolean        
       version:
         description: '输入版本号,格式为X.Y.Z,为空则版本号加1'
         required: false
@@ -139,20 +149,19 @@ jobs:
           opkg update
           opkg install curl
           opkg install luci-i18n-argon-config-zh-cn"
-          # opkg install curl; \
-          # opkg install luci-i18n-ttyd-zh-cn; \
-          # opkg install luci-i18n-argon-config-zh-cn"
 
-      # - name: Download and run istore-reinstall.run
-      #   continue-on-error: true
-      #   run: |
-      #     docker exec immortalwrt-arm64 sh -c "mkdir -p /tmp/is-root/var/lock"
-      #     docker exec immortalwrt-arm64 sh -c "cd /tmp && wget -O istore-reinstall.run https://raw.githubusercontent.com/PlanetEditorX/immortalwrt/refs/heads/main/src/istore-reinstall.run && chmod 755 istore-reinstall.run && ./istore-reinstall.run"
+      - name: Download and run istore-reinstall.run
+        if: ${{ github.event.inputs.arm_istore == 'true' }}
+        continue-on-error: true
+        run: |
+          docker exec immortalwrt-arm64 sh -c "mkdir -p /tmp/is-root/var/lock"
+          docker exec immortalwrt-arm64 sh -c "cd /tmp && wget -O istore-reinstall.run https://raw.githubusercontent.com/PlanetEditorX/immortalwrt/refs/heads/main/src/istore-reinstall.run && chmod 755 istore-reinstall.run && ./istore-reinstall.run"
 
-      # - name: Install luci-i18n-quickstart-zh-cn
-      #   continue-on-error: true
-      #   run: |
-      #     docker exec immortalwrt-arm64 sh -c "/tmp/is-opkg opkg install luci-i18n-quickstart-zh-cn"
+      - name: Install luci-i18n-quickstart-zh-cn
+        if: ${{ github.event.inputs.arm_istore == 'true' }}
+        continue-on-error: true
+        run: |
+          docker exec immortalwrt-arm64 sh -c "/tmp/is-opkg opkg install luci-i18n-quickstart-zh-cn"
 
       - name: Copy and install Are-u-ok in immortalwrt-arm64
         continue-on-error: true
@@ -165,16 +174,18 @@ jobs:
             opkg install coreutils-nohup bash iptables dnsmasq-full curl ca-certificates ipset ip-full iptables-mod-tproxy iptables-mod-extra libcap libcap-bin ruby ruby-yaml kmod-tun kmod-inet-diag unzip luci-compat luci luci-base
             opkg install *.ipk
           "
-      
-      - name: Del unuse files in immortalwrt-arm64
-        run: |
-          docker exec immortalwrt-arm64 sh -c "rm -rf /tmp/ipk"
 
       - name: Copy core in immortalwrt-arm64
         run: |
-          tar -xzf ./src/core/clash-linux-arm64.tar.gz
-          mv clash clash_meta
-          docker cp clash_meta immortalwrt-arm64:/etc/openclash/core/
+          docker cp ./src/core/ immortalwrt-arm64:/tmp/core/
+          docker exec immortalwrt-arm64 sh -c "
+            tar -xzpf passwall-linux-arm64.tar.gz -C /usr/bin
+            tar -xzpf clash-linux-arm64.tar.gz
+            mv clash /etc/openclash/core/clash_meta
+          "
+      - name: Del unuse files in immortalwrt-arm64
+        run: |
+          docker exec immortalwrt-arm64 sh -c "rm -rf /tmp/ipk /tmp/core"
         
       - name: Commit modified container
         run: |
@@ -206,18 +217,21 @@ jobs:
           
       - name: Install packages in immortalwrt-amd64
         run: |
-          docker exec immortalwrt-amd64 sh -c "opkg update; \
-          opkg install curl; \
-          opkg install luci-i18n-ttyd-zh-cn; \
-          opkg install luci-i18n-argon-config-zh-cn; \
-          opkg install openssh-sftp-server"
+          docker exec immortalwrt-amd64 sh -c "
+            opkg update
+            opkg install curl
+            opkg install luci-i18n-argon-config-zh-cn
+            opkg install openssh-sftp-server
+          "
 
       - name: Download and run istore-reinstall.run
+        if: ${{ github.event.inputs.amd_istore == 'true' }}
         run: |
           docker exec immortalwrt-amd64 sh -c "mkdir -p /tmp/is-root/var/lock"
           docker exec immortalwrt-amd64 sh -c "cd /tmp && wget -O istore-reinstall.run https://github.com/linkease/openwrt-app-actions/raw/main/applications/luci-app-systools/root/usr/share/systools/istore-reinstall.run && chmod 755 istore-reinstall.run && ./istore-reinstall.run"
 
       - name: Install luci-i18n-quickstart-zh-cn
+        if: ${{ github.event.inputs.amd_istore == 'true' }}
         continue-on-error: true
         run: |
           docker exec immortalwrt-amd64 sh -c "/tmp/is-opkg opkg install luci-i18n-quickstart-zh-cn"
