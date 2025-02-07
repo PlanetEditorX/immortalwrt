@@ -29,7 +29,7 @@ on:
         default: ''
 
 jobs:
-  docker:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -138,16 +138,20 @@ jobs:
         run: |
           docker run -d --name immortalwrt-arm64 --platform linux/arm64 --privileged immortalwrt:initial-arm64 /bin/sh -c "while true; do sleep 1000; done"
 
-      - name: Ensure /var/lock directory exists in immortalwrt-arm64
+      - name: Ensure directory exists in immortalwrt-arm64
         run: |
           docker exec immortalwrt-arm64 sh -c "mkdir -p /tmp/log /var/lock"
           
       - name: Install packages in immortalwrt-arm64
         run: |
+          docker cp ./src/ipk/ immortalwrt-arm64:/tmp/ipk/
           docker exec immortalwrt-arm64 sh -c "
-          opkg update
-          opkg install curl
-          opkg install luci-i18n-argon-config-zh-cn"
+            cd /tmp/ipk/arm
+            opkg update
+            opkg install *.ipk
+            opkg install curl
+            opkg install luci-i18n-argon-config-zh-cn
+          "
 
       - name: Download and run istore-reinstall.run in immortalwrt-arm64
         if: ${{ github.event.inputs.arm_istore == 'true' }}
@@ -165,7 +169,6 @@ jobs:
       - name: Copy and install Are-u-ok in immortalwrt-arm64
         continue-on-error: true
         run: |
-          docker cp ./src/ipk/ immortalwrt-arm64:/tmp/ipk/
           docker exec immortalwrt-arm64 sh -c "
             cd /tmp/ipk/
             echo "Update Package"
