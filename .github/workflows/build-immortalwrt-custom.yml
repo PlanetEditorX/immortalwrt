@@ -178,7 +178,7 @@ jobs:
             cd openclash
             opkg install coreutils-nohup bash iptables dnsmasq-full curl ca-certificates ipset ip-full iptables-mod-tproxy iptables-mod-extra libcap libcap-bin ruby ruby-yaml kmod-tun kmod-inet-diag unzip luci-compat luci luci-base
             opkg install *.ipk
-            echo 'Install Passwall2'
+            echo 'Install PassWall2'
             cd ../passwall2
             opkg install *.ipk
             cd passwall_packages_ipk_aarch64_cortex-a72
