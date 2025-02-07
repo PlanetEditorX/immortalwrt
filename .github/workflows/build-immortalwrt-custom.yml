@@ -168,8 +168,16 @@ jobs:
           docker cp ./src/ipk/ immortalwrt-arm64:/tmp/ipk/
           docker exec immortalwrt-arm64 sh -c "
             cd /tmp/ipk/
+            echo "Update Package"
             opkg update
+            echo "Install OpenClash"
+            cd openclash
             opkg install coreutils-nohup bash iptables dnsmasq-full curl ca-certificates ipset ip-full iptables-mod-tproxy iptables-mod-extra libcap libcap-bin ruby ruby-yaml kmod-tun kmod-inet-diag unzip luci-compat luci luci-base
+            opkg install *.ipk
+            echo "Install Passwall2"
+            cd passwall2
+            opkg install *.ipk
+            cd passwall_packages_ipk_aarch64_cortex-a72
             opkg install *.ipk
           "
 
@@ -178,8 +186,8 @@ jobs:
           docker cp ./src/core/ immortalwrt-arm64:/tmp/core/
           docker exec immortalwrt-arm64 sh -c "
             cd /tmp/core/
-            tar -xzvpf passwall-linux-arm64.tar.gz -C /usr/bin
-            ls -l /usr/bin/sing-box /usr/bin/xray /usr/bin/hysteria
+            # tar -xzvpf passwall-linux-arm64.tar.gz -C /usr/bin
+            # ls -l /usr/bin/sing-box /usr/bin/xray /usr/bin/hysteria
             tar -xzvpf clash-linux-arm64.tar.gz
             mv clash /etc/openclash/core/clash_meta
             ls -l /etc/openclash/core/clash_meta
