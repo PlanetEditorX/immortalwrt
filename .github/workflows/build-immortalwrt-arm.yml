@@ -138,53 +138,57 @@ jobs:
 
       - name: Install packages in immortalwrt-arm64
         run: |
-          docker cp ./src/ipk/ immortalwrt-arm64:/tmp/ipk/
+          # docker cp ./src/ipk/ immortalwrt-arm64:/tmp/ipk/
+          # docker exec immortalwrt-arm64 sh -c "
+          #   cd /tmp/ipk/arm
+          #   opkg update
+          #   opkg install *.ipk
+          #   opkg install curl
+          #   opkg install luci-i18n-argon-config-zh-cn
+          #   opkg install kmod-nft-socket kmod-nft-tproxy
+          # "
           docker exec immortalwrt-arm64 sh -c "
-            cd /tmp/ipk/arm
-            opkg update
-            opkg install *.ipk
-            opkg install curl
-            opkg install luci-i18n-argon-config-zh-cn
-            opkg install kmod-nft-socket kmod-nft-tproxy
+              opkg update
+              opkg install curl luci-i18n-diskman-zh-cn luci-i18n-firewall-zh-cn luci-app-argon-config luci-i18n-argon-config-zh-cn luci-i18n-package-manager-zh-cn luci-i18n-ttyd-zh-cn luci-i18n-passwall-zh-cn luci-app-openclash luci-i18n-homeproxy-zh-cn openssh-sftp-server fdisk script-utils luci-i18n-samba4-zh-cn
           "
 
-      - name: Download and Run istore-reinstall.run in immortalwrt-arm64
-        if: ${{ github.event.inputs.arm_istore == 'true' }}
-        continue-on-error: true
-        run: |
-          docker exec immortalwrt-arm64 sh -c "mkdir -p /tmp/is-root/var/lock"
-          docker exec immortalwrt-arm64 sh -c "cd /tmp && wget -O istore-reinstall.run https://raw.githubusercontent.com/PlanetEditorX/immortalwrt/refs/heads/main/src/istore-reinstall.run && chmod 755 istore-reinstall.run && ./istore-reinstall.run"
+      # - name: Download and Run istore-reinstall.run in immortalwrt-arm64
+      #   if: ${{ github.event.inputs.arm_istore == 'true' }}
+      #   continue-on-error: true
+      #   run: |
+      #     docker exec immortalwrt-arm64 sh -c "mkdir -p /tmp/is-root/var/lock"
+      #     docker exec immortalwrt-arm64 sh -c "cd /tmp && wget -O istore-reinstall.run https://raw.githubusercontent.com/PlanetEditorX/immortalwrt/refs/heads/main/src/istore-reinstall.run && chmod 755 istore-reinstall.run && ./istore-reinstall.run"
 
-      - name: Install luci-i18n-quickstart-zh-cn in immortalwrt-arm64
-        if: ${{ github.event.inputs.arm_istore == 'true' }}
-        continue-on-error: true
-        run: |
-          docker exec immortalwrt-arm64 sh -c "/tmp/is-opkg opkg install luci-i18n-quickstart-zh-cn"
+      # - name: Install luci-i18n-quickstart-zh-cn in immortalwrt-arm64
+      #   if: ${{ github.event.inputs.arm_istore == 'true' }}
+      #   continue-on-error: true
+      #   run: |
+      #     docker exec immortalwrt-arm64 sh -c "/tmp/is-opkg opkg install luci-i18n-quickstart-zh-cn"
 
-      - name: Install OpenClash in immortalwrt-arm64
-        continue-on-error: true
-        run: |
-          docker exec immortalwrt-arm64 sh -c "
-            wget -O openclash.run https://github.com/wukongdaily/RunFilesBuilder/releases/download/v0.46.075/openclash-aarch64_cortex-a53-v0.46.075.run
-            sh openclash.run
-            rm openclash.run
-          "
-      - name: Install passwall in immortalwrt-arm64
-        continue-on-error: true
-        run: |
-          docker exec immortalwrt-arm64 sh -c "
-            wget -O passwall.run https://github.com/wukongdaily/RunFilesBuilder/releases/download/25.3.2-1/passwall_aarch64_a53_25.3.2-1.run
-            sh passwall.run
-            rm passwall.run
-          "
-      - name: Install ssrp in immortalwrt-arm64
-        continue-on-error: true
-        run: |
-          docker exec immortalwrt-arm64 sh -c "
-            wget -O ssrp.run https://github.com/wukongdaily/RunFilesBuilder/releases/download/26.062.56443/ssrp_aarch64_cortex-a53_26.062.56443.run
-            sh ssrp.run
-            rm ssrp.run
-          "
+      # - name: Install OpenClash in immortalwrt-arm64
+      #   continue-on-error: true
+      #   run: |
+      #     docker exec immortalwrt-arm64 sh -c "
+      #       wget -O openclash.run https://github.com/wukongdaily/RunFilesBuilder/releases/download/v0.46.075/openclash-aarch64_cortex-a53-v0.46.075.run
+      #       sh openclash.run
+      #       rm openclash.run
+      #     "
+      # - name: Install passwall in immortalwrt-arm64
+      #   continue-on-error: true
+      #   run: |
+      #     docker exec immortalwrt-arm64 sh -c "
+      #       wget -O passwall.run https://github.com/wukongdaily/RunFilesBuilder/releases/download/25.3.2-1/passwall_aarch64_a53_25.3.2-1.run
+      #       sh passwall.run
+      #       rm passwall.run
+      #     "
+      # - name: Install ssrp in immortalwrt-arm64
+      #   continue-on-error: true
+      #   run: |
+      #     docker exec immortalwrt-arm64 sh -c "
+      #       wget -O ssrp.run https://github.com/wukongdaily/RunFilesBuilder/releases/download/26.062.56443/ssrp_aarch64_cortex-a53_26.062.56443.run
+      #       sh ssrp.run
+      #       rm ssrp.run
+      #     "
 
       # - name: Copy and install Are-u-ok in immortalwrt-arm64
       #   continue-on-error: true
