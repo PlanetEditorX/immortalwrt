@@ -1,4 +1,4 @@
-name: Build Immortalwrt Custom
+name: Build Immortalwrt arm
 
 on:
   schedule:
