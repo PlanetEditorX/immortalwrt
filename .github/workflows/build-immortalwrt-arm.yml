@@ -153,24 +153,24 @@ jobs:
         run: |
           docker exec immortalwrt-arm64 sh -c "/tmp/is-opkg opkg install luci-i18n-quickstart-zh-cn"
 
-      - name: Copy and install Are-u-ok in immortalwrt-arm64
-        continue-on-error: true
-        run: |
-          docker exec immortalwrt-arm64 sh -c "
-            cd /tmp/ipk/
-            ls -l
-            echo 'Update Package'
-            opkg update
-            echo 'Install OpenClash'
-            cd openclash
-            opkg install coreutils-nohup bash iptables dnsmasq-full curl ca-certificates ipset ip-full iptables-mod-tproxy iptables-mod-extra libcap libcap-bin ruby ruby-yaml kmod-tun kmod-inet-diag unzip luci-compat luci luci-base
-            opkg install *.ipk
-            echo 'Install PassWall2'
-            cd ../passwall2
-            opkg install *.ipk
-            cd passwall_packages_ipk_aarch64_generic
-            opkg install *.ipk
-          "
+      # - name: Copy and install Are-u-ok in immortalwrt-arm64
+      #   continue-on-error: true
+      #   run: |
+      #     docker exec immortalwrt-arm64 sh -c "
+      #       cd /tmp/ipk/
+      #       ls -l
+      #       echo 'Update Package'
+      #       opkg update
+      #       echo 'Install OpenClash'
+      #       cd openclash
+      #       opkg install coreutils-nohup bash iptables dnsmasq-full curl ca-certificates ipset ip-full iptables-mod-tproxy iptables-mod-extra libcap libcap-bin ruby ruby-yaml kmod-tun kmod-inet-diag unzip luci-compat luci luci-base
+      #       opkg install *.ipk
+      #       echo 'Install PassWall2'
+      #       cd ../passwall2
+      #       opkg install *.ipk
+      #       cd passwall_packages_ipk_aarch64_generic
+      #       opkg install *.ipk
+      #     "
 
       - name: Copy core in immortalwrt-arm64
         run: |
@@ -184,22 +184,29 @@ jobs:
         
       - name: Commit modified container in immortalwrt-arm64
         run: |
-          docker exec immortalwrt-arm64 sh -c "cat <<EOF > /etc/config/network
-            config interface 'loopback'
-            	option device 'lo'
-            	option proto 'static'
-            	option ipaddr '127.0.0.1'
-            	option netmask '255.0.0.0'
-            
-            config interface 'lan'
-            	option proto 'static'
-            	option netmask '255.255.255.0'
-            	option ip6assign '60'
-            	option ipaddr '${{ github.event.inputs.ipaddr }}'
-            	option gateway '${{ github.event.inputs.gateway }}'
-            	option dns '223.5.5.5 1.1.1.1'
-            	option device 'eth0'
-            EOF"
+          docker exec immortalwrt-arm64 sh -c "
+          cat <<EOF > /etc/config/network
+          config interface 'loopback'
+            option device 'lo'
+            option proto 'static'
+            option ipaddr '127.0.0.1'
+            option netmask '255.0.0.0'
+          
+          config globals 'globals'
+            option ula_prefix 'fd98:9655:39f9::/48'
+          
+          config interface 'lan'
+            option proto 'static'
+            option netmask '255.255.255.0'
+            option ipbassign '60'
+            option ipaddr '${{ github.event.inputs.ipaddr }}'
+            option gateway '${{ github.event.inputs.gateway }}'
+            option dns '223.5.5.5 1.1.1.1'
+            option device 'eth0'
+          EOF
+          "
+          docker restart immortalwrt-arm64
+          sleep 10s
           docker commit immortalwrt-arm64 immortalwrt:arm64
       
       - name: Push modified Docker image arm64
