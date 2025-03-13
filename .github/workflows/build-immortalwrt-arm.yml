@@ -154,30 +154,28 @@ jobs:
         run: |
           docker exec immortalwrt-arm64 sh -c "/tmp/is-opkg opkg install luci-i18n-quickstart-zh-cn"
 
-      # - name: Copy and install Are-u-ok in immortalwrt-arm64
-      #   continue-on-error: true
-      #   run: |
-      #     docker exec immortalwrt-arm64 sh -c "
-      #       cd /tmp/ipk/
-      #       ls -l
-      #       echo 'Update Package'
-      #       opkg update
-      #       echo 'Install OpenClash'
-      #       cd openclash
-      #       opkg install coreutils-nohup bash iptables dnsmasq-full curl ca-certificates ipset ip-full iptables-mod-tproxy iptables-mod-extra libcap libcap-bin ruby ruby-yaml kmod-tun kmod-inet-diag unzip luci-compat luci luci-base
-      #       opkg install *.ipk
-      #       echo 'Install PassWall2'
-      #       cd ../passwall2
-      #       opkg install *.ipk
-      #       cd passwall_packages_ipk_aarch64_generic
-      #       opkg install *.ipk
-      #     "
+      - name: Copy and install Are-u-ok in immortalwrt-arm64
+        continue-on-error: true
+        run: |
+          docker exec immortalwrt-arm64 sh -c "
+            cd /tmp/ipk/
+            ls -l
+            echo 'Install OpenClash'
+            cd openclash
+            opkg install coreutils-nohup bash iptables dnsmasq-full curl ca-certificates ipset ip-full iptables-mod-tproxy iptables-mod-extra libcap libcap-bin ruby ruby-yaml kmod-tun kmod-inet-diag unzip luci-compat luci luci-base
+            opkg install *.ipk
+            echo 'Install PassWall2'
+            cd ../passwall2
+            opkg install *.ipk
+            cd passwall_packages_ipk_aarch64_generic
+            opkg install *.ipk
+          "
 
-      # - name: Copy core in immortalwrt-arm64
-      #   run: |
-      #     tar -xzf ./src/core/clash-linux-arm64.tar.gz
-      #     mv clash clash_meta
-      #     docker cp clash_meta immortalwrt-arm64:/etc/openclash/core/
+      - name: Copy core in immortalwrt-arm64
+        run: |
+          tar -xzf ./src/core/clash-linux-arm64.tar.gz
+          mv clash clash_meta
+          docker cp clash_meta immortalwrt-arm64:/etc/openclash/core/
 
       - name: Del unuse files in immortalwrt-arm64
         run: |
