@@ -172,11 +172,11 @@ jobs:
       #       opkg install *.ipk
       #     "
 
-      - name: Copy core in immortalwrt-arm64
-        run: |
-          tar -xzf ./src/core/clash-linux-arm64.tar.gz
-          mv clash clash_meta
-          docker cp clash_meta immortalwrt-arm64:/etc/openclash/core/
+      # - name: Copy core in immortalwrt-arm64
+      #   run: |
+      #     tar -xzf ./src/core/clash-linux-arm64.tar.gz
+      #     mv clash clash_meta
+      #     docker cp clash_meta immortalwrt-arm64:/etc/openclash/core/
     
       - name: Del unuse files in immortalwrt-arm64
         run: |
