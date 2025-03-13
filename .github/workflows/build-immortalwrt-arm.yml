@@ -1,0 +1,214 @@
+name: Build Immortalwrt Custom
+
+on:
+  schedule:
+    - cron: '0 10 * * 1'  # 每周一的上午10点（UTC时间，对应北京时间下午6点）
+  workflow_dispatch:
+    inputs:
+      ipaddr:
+        description: '输入管理IP'
+        required: true
+        default: '192.168.3.100'
+      gateway:
+        description: '输入默认网关'
+        required: true
+        default: '192.168.3.1'
+      arm_istore:
+        description: 'ARM版本是否安装iStore'
+        required: false
+        default: 'false'
+        type: boolean
+      version:
+        description: '输入版本号,格式为X.Y.Z,为空则版本号加1'
+        required: false
+        default: ''
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Get version
+        id: get_version
+        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+
+      - name: Get latest Docker tag
+        run: |
+          # 通过page=2&page_size=1限制获取最新版本号，page=1&page_size=1为latest，page=2&page_size=1为X.Y.Z-c/python
+          TAGS_URL="https://registry.hub.docker.com/v2/namespaces/${{ secrets.DOCKER_USERNAME }}/repositories/immortalwrt/tags?page=2&page_size=1"
+          TAGS_RESPONSE=$(curl -s $TAGS_URL)
+          LATEST_TAG=$(echo $TAGS_RESPONSE | jq -r '.results[] | .name' | sort -V | tail -n1 | awk -F'-' '{print $1}')
+          echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
+
+      - name: Increment version
+        run: |
+          # 读取最新版本号并分割为数组
+          IFS='.' read -r major minor patch <<< $LATEST_TAG
+          # 递增补丁版本号
+          patch=$((patch + 1))
+          # 如果补丁版本号达到10，重置为0并递增次版本号
+          if [ $patch -eq 10 ]; then
+              patch=0
+              minor=$((minor + 1))
+              # 如果次版本号达到10，重置为0并递增主版本号
+              if [ $minor -eq 10 ]; then
+                  minor=0
+                  major=$((major + 1))
+              fi
+          fi
+          # 构造新版本号
+          NEW_VERSION="$major.$minor.$patch"
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+
+      - name: Show New Version
+        run: echo $NEW_VERSION
+
+      - name: Use tags or version
+        id: final_tags
+        run: |
+          if [ "${{ github.event.inputs.version }}" != "" ]; then
+            echo "tags=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          elif [ "${{ steps.get_version.outputs.VERSION }}" != "" ] && [ "${{ steps.get_version.outputs.VERSION }}" != "refs/heads/main" ]; then
+            echo "tags=${{ steps.get_version.outputs.VERSION }}" >> $GITHUB_OUTPUT
+          else
+            echo "tags=$NEW_VERSION" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Download and Extract RootFS
+        run: |
+          mkdir -p immortalwrt
+          cd immortalwrt
+          wget -O rootfs_arm64.tar.gz https://downloads.immortalwrt.org/releases/24.10.0/targets/armsr/armv8/immortalwrt-24.10.0-armsr-armv8-rootfs.tar.gz
+          gzip -d rootfs_arm64.tar.gz
+
+      - name: Move rootfs.tar.gz to build context
+        run: |
+          mkdir -p ./src/amd64 ./src/arm64
+          cp ./src/Dockerfile ./src/arm64
+          mv immortalwrt/rootfs_arm64.tar ./src/arm64/rootfs.tar
+
+      - name: Build ARM Docker image
+        id: build
+        uses: docker/build-push-action@v4
+        with:
+          context: ./src/arm64
+          file: ./src/arm64/Dockerfile
+          platforms: linux/arm64
+          tags: immortalwrt:initial-arm64
+          push: false  # 不推送镜像
+
+      - name: List local Docker images
+        run: docker images
+    
+      - name: Ensure Docker image exists
+        run: |
+          if ! docker image inspect immortalwrt:initial-arm64 &> /dev/null; then
+            echo "Image 'immortalwrt:initial-arm64' not found. Rebuilding..."
+            docker build -t immortalwrt:initial-arm64 --platform linux/arm64 ./src/arm64
+          fi
+      
+      - name: Run container in immortalwrt-arm64
+        run: |
+          docker run -d --name immortalwrt-arm64 --platform linux/arm64 --privileged immortalwrt:initial-arm64 /bin/sh -c "while true; do sleep 1000; done"
+
+      - name: Ensure directory exists in immortalwrt-arm64
+        run: |
+          docker exec immortalwrt-arm64 sh -c "mkdir -p /tmp/log /var/lock"
+          
+      - name: Install packages in immortalwrt-arm64
+        run: |
+          docker cp ./src/ipk/ immortalwrt-arm64:/tmp/ipk/
+          docker exec immortalwrt-arm64 sh -c "
+            cd /tmp/ipk/arm
+            opkg update
+            opkg install *.ipk
+            opkg install curl
+            opkg install luci-i18n-argon-config-zh-cn
+          "
+
+      - name: Download and Run istore-reinstall.run in immortalwrt-arm64
+        if: ${{ github.event.inputs.arm_istore == 'true' }}
+        continue-on-error: true
+        run: |
+          docker exec immortalwrt-arm64 sh -c "mkdir -p /tmp/is-root/var/lock"
+          docker exec immortalwrt-arm64 sh -c "cd /tmp && wget -O istore-reinstall.run https://raw.githubusercontent.com/PlanetEditorX/immortalwrt/refs/heads/main/src/istore-reinstall.run && chmod 755 istore-reinstall.run && ./istore-reinstall.run"
+
+      - name: Install luci-i18n-quickstart-zh-cn in immortalwrt-arm64
+        if: ${{ github.event.inputs.arm_istore == 'true' }}
+        continue-on-error: true
+        run: |
+          docker exec immortalwrt-arm64 sh -c "/tmp/is-opkg opkg install luci-i18n-quickstart-zh-cn"
+
+      - name: Copy and install Are-u-ok in immortalwrt-arm64
+        continue-on-error: true
+        run: |
+          docker exec immortalwrt-arm64 sh -c "
+            cd /tmp/ipk/
+            ls -l
+            echo 'Update Package'
+            opkg update
+            echo 'Install OpenClash'
+            cd openclash
+            opkg install coreutils-nohup bash iptables dnsmasq-full curl ca-certificates ipset ip-full iptables-mod-tproxy iptables-mod-extra libcap libcap-bin ruby ruby-yaml kmod-tun kmod-inet-diag unzip luci-compat luci luci-base
+            opkg install *.ipk
+            echo 'Install PassWall2'
+            cd ../passwall2
+            opkg install *.ipk
+            cd passwall_packages_ipk_aarch64_generic
+            opkg install *.ipk
+          "
+
+      - name: Copy core in immortalwrt-arm64
+        run: |
+          tar -xzf ./src/core/clash-linux-arm64.tar.gz
+          mv clash clash_meta
+          docker cp clash_meta immortalwrt-arm64:/etc/openclash/core/
+    
+      - name: Del unuse files in immortalwrt-arm64
+        run: |
+          docker exec immortalwrt-arm64 sh -c "rm -rf /tmp/ipk /tmp/core"
+        
+      - name: Commit modified container in immortalwrt-arm64
+        run: |
+          docker exec immortalwrt-arm64 sh -c "cat <<EOF > /etc/config/network
+            config interface 'loopback'
+            	option device 'lo'
+            	option proto 'static'
+            	option ipaddr '127.0.0.1'
+            	option netmask '255.0.0.0'
+            
+            config interface 'lan'
+            	option proto 'static'
+            	option netmask '255.255.255.0'
+            	option ip6assign '60'
+            	option ipaddr '${{ github.event.inputs.ipaddr }}'
+            	option gateway '${{ github.event.inputs.gateway }}'
+            	option dns '223.5.5.5 1.1.1.1'
+            	option device 'eth0'
+            EOF"
+          docker commit immortalwrt-arm64 immortalwrt:arm64
+      
+      - name: Push modified Docker image arm64
+        run: |
+          docker tag immortalwrt:arm64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:arm
+          docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:arm
+          docker tag immortalwrt:arm64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-arm
+          docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-arm
+          docker tag immortalwrt:arm64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:latest
+          
+          
