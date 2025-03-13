@@ -114,7 +114,7 @@ jobs:
       #     push: false  # 不推送镜像
       - name: Build ARM Docker image
         run: |
-          docker buildx build --platform linux/arm64 -t immortalwrt:initial-arm64 --load .
+          docker buildx build --platform linux/arm64 -t immortalwrt:initial-arm64 --load ./src/arm64
           # `--load` 表示镜像加载到本地‌:ml-citation{ref="3" data="citationList"}
 
 
