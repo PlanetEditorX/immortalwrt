@@ -155,29 +155,54 @@ jobs:
         run: |
           docker exec immortalwrt-arm64 sh -c "/tmp/is-opkg opkg install luci-i18n-quickstart-zh-cn"
 
-      - name: Copy and install Are-u-ok in immortalwrt-arm64
+      - name: Install OpenClash in immortalwrt-arm64
         continue-on-error: true
         run: |
           docker exec immortalwrt-arm64 sh -c "
-            mkdir -p /etc/openclash/core/
-            cd /tmp/ipk/
-            ls -l
-            echo 'Install OpenClash'
-            cd openclash
-            opkg install coreutils-nohup bash iptables dnsmasq-full curl ca-certificates ipset ip-full iptables-mod-tproxy iptables-mod-extra libcap libcap-bin ruby ruby-yaml kmod-tun kmod-inet-diag unzip luci-compat luci luci-base
-            opkg install *.ipk
-            echo 'Install PassWall2'
-            cd ../passwall2
-            opkg install *.ipk
-            cd passwall_packages_ipk_aarch64_generic
-            opkg install *.ipk
+            wget -O openclash.run https://github.com/wukongdaily/RunFilesBuilder/releases/download/v0.46.075/openclash-aarch64_cortex-a53-v0.46.075.run
+            sh openclash.run
+            rm openclash.run
+          "
+      - name: Install passwall in immortalwrt-arm64
+        continue-on-error: true
+        run: |
+          docker exec immortalwrt-arm64 sh -c "
+            wget -O passwall.run https://github.com/wukongdaily/RunFilesBuilder/releases/download/25.3.2-1/passwall_aarch64_a53_25.3.2-1.run
+            sh passwall.run
+            rm passwall.run
+          "
+      - name: Install ssrp in immortalwrt-arm64
+        continue-on-error: true
+        run: |
+          docker exec immortalwrt-arm64 sh -c "
+            wget -O ssrp.run https://github.com/wukongdaily/RunFilesBuilder/releases/download/26.062.56443/ssrp_aarch64_cortex-a53_26.062.56443.run
+            sh ssrp.run
+            rm ssrp.run
           "
 
-      - name: Copy core in immortalwrt-arm64
-        run: |
-          tar -xzf ./src/core/clash-linux-arm64.tar.gz
-          mv clash clash_meta
-          docker cp clash_meta immortalwrt-arm64:/etc/openclash/core/
+      # - name: Copy and install Are-u-ok in immortalwrt-arm64
+      #   continue-on-error: true
+      #   run: |
+      #     docker exec immortalwrt-arm64 sh -c "
+      #       mkdir -p /etc/openclash/core/
+      #       cd /tmp/ipk/
+      #       ls -l
+      #       echo 'Install OpenClash'
+      #       cd openclash
+      #       opkg install coreutils-nohup bash iptables dnsmasq-full curl ca-certificates ipset ip-full iptables-mod-tproxy iptables-mod-extra libcap libcap-bin ruby ruby-yaml kmod-tun kmod-inet-diag unzip luci-compat luci luci-base
+      #       opkg install *.ipk
+      #       echo 'Install PassWall2'
+      #       cd ../passwall2
+      #       opkg install *.ipk
+      #       cd passwall_packages_ipk_aarch64_generic
+      #       opkg install *.ipk
+      #     "
+
+      # - name: Copy core in immortalwrt-arm64
+      #   run: |
+      #     tar -xzf ./src/core/clash-linux-arm64.tar.gz
+      #     mv clash clash_meta
+      #     docker cp clash_meta immortalwrt-arm64:/etc/openclash/core/
 
       - name: Del unuse files in immortalwrt-arm64
         run: |
