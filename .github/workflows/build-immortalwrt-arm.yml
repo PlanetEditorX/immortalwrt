@@ -93,7 +93,7 @@ jobs:
           mkdir -p immortalwrt
           cd immortalwrt
           # wget -O rootfs_arm64.tar.gz https://downloads.immortalwrt.org/releases/24.10.0/targets/armsr/armv8/immortalwrt-24.10.0-armsr-armv8-rootfs.tar.gz
-          wget -O rootfs_arm64.tar.gz https://downloads.immortalwrt.org/releases/23.05.4/targets/armsr/armv8/immortalwrt-23.05.4-armsr-armv8-rootfs.tar.gz
+          wget -O rootfs_arm64.tar.gz https://archive.openwrt.org/releases/24.10.0/targets/armsr/armv8/openwrt-24.10.0-armsr-armv8-rootfs.tar.gz
           gzip -d rootfs_arm64.tar.gz
 
       - name: Move rootfs.tar.gz to build context
