@@ -1,4 +1,4 @@
-name: Build Immortalwrt arm
+name: Build Immortalwrt arm self
 
 on:
   # schedule:
@@ -25,16 +25,16 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+      # - name: Set up QEMU
+      #   uses: docker/setup-qemu-action@v3
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      # - name: Set up Docker Buildx
+      #   uses: docker/setup-buildx-action@v3
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -114,23 +114,22 @@ jobs:
       #     push: false  # 不推送镜像
       - name: Build ARM Docker image
         run: |
-          docker buildx build --platform linux/arm64 -t immortalwrt:initial-arm64 --load ./src/arm64
-          # `--load` 表示镜像加载到本地‌:ml-citation{ref="3" data="citationList"}
+          docker build -t immortalwrt:initial-arm64 --load ./src/arm64
 
+      # - name: List local Docker images
+      #   run: docker images
 
-      - name: List local Docker images
-        run: docker images
-
-      - name: Ensure Docker image exists
-        run: |
-          if ! docker image inspect immortalwrt:initial-arm64 &> /dev/null; then
-            echo "Image 'immortalwrt:initial-arm64' not found. Rebuilding..."
-            docker build -t immortalwrt:initial-arm64 --platform linux/arm64 ./src/arm64
-          fi
+      # - name: Ensure Docker image exists
+      #   run: |
+      #     if ! docker image inspect immortalwrt:initial-arm64 &> /dev/null; then
+      #       echo "Image 'immortalwrt:initial-arm64' not found. Rebuilding..."
+      #       docker build -t immortalwrt:initial-arm64 --platform linux/arm64 ./src/arm64
+      #     fi
 
       - name: Run container in immortalwrt-arm64
         run: |
-          docker run -d --name immortalwrt-arm64 --platform linux/arm64 --privileged immortalwrt:initial-arm64 /bin/sh -c "while true; do sleep 1000; done"
+          # docker run -d --name immortalwrt-arm64 --platform linux/arm64 --privileged immortalwrt:initial-arm64 /bin/sh -c "while true; do sleep 1000; done"
+          docker run --name immortalwrt-arm64 -d --network macnet --privileged immortalwrt:initial-arm64 /sbin/init
 
       - name: Ensure directory exists in immortalwrt-arm64
         run: |
