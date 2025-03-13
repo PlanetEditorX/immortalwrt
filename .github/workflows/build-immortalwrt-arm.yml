@@ -16,7 +16,7 @@ on:
       arm_istore:
         description: 'ARM版本是否安装iStore'
         required: false
-        default: 'false'
+        default: false
         type: boolean
       version:
         description: '输入版本号,格式为X.Y.Z,为空则版本号加1'
@@ -113,14 +113,14 @@ jobs:
 
       - name: List local Docker images
         run: docker images
-    
+
       - name: Ensure Docker image exists
         run: |
           if ! docker image inspect immortalwrt:initial-arm64 &> /dev/null; then
             echo "Image 'immortalwrt:initial-arm64' not found. Rebuilding..."
             docker build -t immortalwrt:initial-arm64 --platform linux/arm64 ./src/arm64
           fi
-      
+
       - name: Run container in immortalwrt-arm64
         run: |
           docker run -d --name immortalwrt-arm64 --platform linux/arm64 --privileged immortalwrt:initial-arm64 /bin/sh -c "while true; do sleep 1000; done"
@@ -128,7 +128,7 @@ jobs:
       - name: Ensure directory exists in immortalwrt-arm64
         run: |
           docker exec immortalwrt-arm64 sh -c "mkdir -p /tmp/log /var/lock"
-          
+
       - name: Install packages in immortalwrt-arm64
         run: |
           docker cp ./src/ipk/ immortalwrt-arm64:/tmp/ipk/
@@ -138,6 +138,7 @@ jobs:
             opkg install *.ipk
             opkg install curl
             opkg install luci-i18n-argon-config-zh-cn
+            opkg install kmod-nft-socket kmod-nft-tproxy
           "
 
       - name: Download and Run istore-reinstall.run in immortalwrt-arm64
@@ -177,38 +178,40 @@ jobs:
       #     tar -xzf ./src/core/clash-linux-arm64.tar.gz
       #     mv clash clash_meta
       #     docker cp clash_meta immortalwrt-arm64:/etc/openclash/core/
-    
+
       - name: Del unuse files in immortalwrt-arm64
         run: |
           docker exec immortalwrt-arm64 sh -c "rm -rf /tmp/ipk /tmp/core"
-        
+
       - name: Commit modified container in immortalwrt-arm64
         run: |
           docker exec immortalwrt-arm64 sh -c "
           cat <<EOF > /etc/config/network
           config interface 'loopback'
-            option device 'lo'
-            option proto 'static'
-            option ipaddr '127.0.0.1'
-            option netmask '255.0.0.0'
-          
+          option device 'lo'
+          option proto 'static'
+          option ipaddr '127.0.0.1'
+          option netmask '255.0.0.0'
+
           config globals 'globals'
-            option ula_prefix 'fd98:9655:39f9::/48'
-          
+                  option ula_prefix 'fd98:9655:39f9::/48'
+
           config interface 'lan'
-            option proto 'static'
-            option netmask '255.255.255.0'
-            option ipbassign '60'
-            option ipaddr '${{ github.event.inputs.ipaddr }}'
-            option gateway '${{ github.event.inputs.gateway }}'
-            option dns '223.5.5.5 1.1.1.1'
-            option device 'eth0'
+                  option proto 'static'
+                  option netmask '255.255.255.0'
+                  option ipbassign '60'
+                  option ipaddr '${{ github.event.inputs.ipaddr }}'
+                  option gateway '${{ github.event.inputs.gateway }}'
+                  option device 'eth0'
+                  list dns '223.5.5.5'
+                  list dns '1.1.1.1'
+                  option delegate '0'
           EOF
           "
           docker restart immortalwrt-arm64
           sleep 10s
           docker commit immortalwrt-arm64 immortalwrt:arm64
-      
+
       - name: Push modified Docker image arm64
         run: |
           docker tag immortalwrt:arm64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:arm
@@ -217,5 +220,5 @@ jobs:
           docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-arm
           docker tag immortalwrt:arm64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:latest
-          
-          
+
+
