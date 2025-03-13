@@ -92,25 +92,31 @@ jobs:
         run: |
           mkdir -p immortalwrt
           cd immortalwrt
-          wget -O rootfs_arm64.tar.gz https://downloads.immortalwrt.org/releases/24.10.0/targets/armsr/armv8/immortalwrt-24.10.0-armsr-armv8-rootfs.tar.gz
-          # wget -O rootfs_arm64.tar.gz https://archive.openwrt.org/releases/24.10.0/targets/armsr/armv8/openwrt-24.10.0-armsr-armv8-rootfs.tar.gz
+          wget -O rootfs_arm64.tar.gz https://downloads.immortalwrt.org/releases/24.10.0-rc3/targets/armsr/armv8/immortalwrt-24.10.0-rc3-armsr-armv8-rootfs.tar.gz
           gzip -d rootfs_arm64.tar.gz
+          # wget -O rootfs_arm64.tar.gz https://downloads.immortalwrt.org/releases/24.10.0/targets/armsr/armv8/immortalwrt-24.10.0-armsr-armv8-rootfs.tar.gz
+          # wget -O rootfs_arm64.tar.gz https://archive.openwrt.org/releases/24.10.0/targets/armsr/armv8/openwrt-24.10.0-armsr-armv8-rootfs.tar.gz
 
       - name: Move rootfs.tar.gz to build context
         run: |
-          mkdir -p ./src/amd64 ./src/arm64
+          mkdir -p ./src/arm64
           cp ./src/Dockerfile ./src/arm64
           mv immortalwrt/rootfs_arm64.tar ./src/arm64/rootfs.tar
 
+      # - name: Build ARM Docker image
+      #   id: build
+      #   uses: docker/build-push-action@v4
+      #   with:
+      #     context: ./src/arm64
+      #     file: ./src/arm64/Dockerfile
+      #     platforms: linux/arm64
+      #     tags: immortalwrt:initial-arm64
+      #     push: false  # 不推送镜像
       - name: Build ARM Docker image
-        id: build
-        uses: docker/build-push-action@v4
-        with:
-          context: ./src/arm64
-          file: ./src/arm64/Dockerfile
-          platforms: linux/arm64
-          tags: immortalwrt:initial-arm64
-          push: false  # 不推送镜像
+        run: |
+          docker buildx build --platform linux/arm64 -t immortalwrt:initial-arm64 --load .
+          # `--load` 表示镜像加载到本地‌:ml-citation{ref="3" data="citationList"}
+
 
       - name: List local Docker images
         run: docker images
