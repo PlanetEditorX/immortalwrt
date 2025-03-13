@@ -129,7 +129,7 @@ jobs:
       - name: Run container in immortalwrt-arm64
         run: |
           # docker run -d --name immortalwrt-arm64 --platform linux/arm64 --privileged immortalwrt:initial-arm64 /bin/sh -c "while true; do sleep 1000; done"
-          docker run --name immortalwrt-arm64 -d --network macnet --privileged immortalwrt:initial-arm64 /sbin/init
+          docker run --name immortalwrt-arm64 -d --privileged immortalwrt:initial-arm64 /sbin/init
 
       - name: Ensure directory exists in immortalwrt-arm64
         run: |
