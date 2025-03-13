@@ -153,7 +153,7 @@ jobs:
           # "
           docker exec immortalwrt-arm64 sh -c "
               opkg update
-              opkg install curl luci-app-argon-config luci-i18n-argon-config-zh-cn luci-i18n-package-manager-zh-cn openssh-sftp-server fdisk script-utils luci-i18n-samba4-zh-cn
+              opkg install curl luci-app-argon-config luci-i18n-argon-config-zh-cn luci-i18n-package-manager-zh-cn openssh-sftp-server fdisk script-utils
           "
 
       - name: Install OpenWrt-nikki in immortalwrt-arm64
