@@ -159,6 +159,7 @@ jobs:
         continue-on-error: true
         run: |
           docker exec immortalwrt-arm64 sh -c "
+            mkdir -p /etc/openclash/core/
             cd /tmp/ipk/
             ls -l
             echo 'Install OpenClash'
