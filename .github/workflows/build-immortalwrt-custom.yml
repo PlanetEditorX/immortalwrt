@@ -33,6 +33,25 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Replace values in config file
+        run: |
+          echo "1.当前网络配置路径"
+          CONFIG_PATH="./src/network"
+          echo $CONFIG_PATH
+
+          echo "2.替换默认配置"
+          sed -i "s/192.168.1.100/${{ github.event.inputs.ipaddr }}/g" "$CONFIG_PATH"
+          sed -i "s/192.168.1.1/${{ github.event.inputs.gateway }}/g" "$CONFIG_PATH"
+
+          echo "3.输出配置"
+          cat $CONFIG_PATH
+
+          echo "4.将文件内容存储到变量中"
+          NETWORK_CONFIG=$(cat $CONFIG_PATH)
+
+          echo "5.将文件内容写入 $GITHUB_OUTPUT"
+          echo "NETWORK_CONFIG=$NETWORK_CONFIG" >> $GITHUB_OUTPUT
+
       - name: Checkout
         uses: actions/checkout@v4
 
