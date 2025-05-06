@@ -59,7 +59,6 @@ jobs:
           TAGS_RESPONSE=$(curl -s $TAGS_URL)
           LATEST_TAG=$(echo $TAGS_RESPONSE | jq -r '.results[] | .name' | sort -V | tail -n1 | awk -F'-' '{print $1}')
           echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
-
       - name: Increment version
         run: |
           # 读取最新版本号并分割为数组
@@ -79,7 +78,6 @@ jobs:
           # 构造新版本号
           NEW_VERSION="$major.$minor.$patch"
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
-
       - name: Show New Version
         run: echo $NEW_VERSION
 
@@ -93,7 +91,6 @@ jobs:
           else
             echo "tags=$NEW_VERSION" >> $GITHUB_OUTPUT
           fi
-
       - name: Download and Extract RootFS
         run: |
           mkdir -p immortalwrt
@@ -102,39 +99,16 @@ jobs:
           wget -O rootfs_arm64.tar.gz https://downloads.immortalwrt.org/releases/24.10.0-rc3/targets/armsr/armv8/immortalwrt-24.10.0-rc3-armsr-armv8-rootfs.tar.gz
           gzip -d rootfs_amd64.tar.gz
           gzip -d rootfs_arm64.tar.gz
-
       - name: Move rootfs.tar.gz to build context
         run: |
-          mkdir -p ./src/arm64/tmp ./src/amd64/tmp
-          tar -xvf immortalwrt/rootfs_arm64.tar -C ./src/arm64/tmp
-          tar -xvf immortalwrt/rootfs_amd64.tar -C ./src/amd64/tmp
-          # mv immortalwrt/rootfs_amd64.tar ./src/amd64/rootfs.tar
-          # mv immortalwrt/rootfs_arm64.tar ./src/arm64/rootfs.tar
-
-      - name: Set Init
-        run: |
-          echo "1.修改默认 IP"
-          sed -i "s/192.168.1.1/${{ github.event.inputs.ipaddr }}/g" ./src/arm64/tmp/bin/config_generate
-          sed -i "s/192.168.1.1/${{ github.event.inputs.ipaddr }}/g" ./src/amd64/tmp/bin/config_generate
-
-          echo "2.修改网关"
-          sed -i "/set network.\$1.netmask/a set network.\$1.gateway='${{ github.event.inputs.gateway }}'" ./src/arm64/tmp/bin/config_generate
-          sed -i "/set network.\$1.netmask/a set network.\$1.gateway='${{ github.event.inputs.gateway }}'" ./src/amd64/tmp/bin/config_generate
-
-          echo "3.修改DNS"
-          sed -i "/set network.\$1.netmask/a set network.\$1.dns='127.0.0.1 223.5.5.5 8.8.8.8'" ./src/arm64/tmp/bin/config_generate
-          sed -i "/set network.\$1.netmask/a set network.\$1.dns='127.0.0.1 223.5.5.5 8.8.8.8'" ./src/amd64/tmp/bin/config_generate
-
-          echo "4.打包文件"
-          tar -cf ./src/arm64/rootfs.tar ./src/arm64/tmp && rm -rf ./src/arm64/tmp
-          tar -cf ./src/amd64/rootfs.tar ./src/amd64/tmp && rm -rf ./src/amd64/tmp
-
+          mkdir -p ./src/amd64 ./src/arm64
+          mv immortalwrt/rootfs_amd64.tar ./src/amd64/rootfs.tar
+          mv immortalwrt/rootfs_arm64.tar ./src/arm64/rootfs.tar
       - name: Build AMD Docker image
         run: |
           cp ./src/Dockerfile ./src/amd64
           cp ./src/Dockerfile ./src/arm64
           docker build -t immortalwrt:initial-amd64 ./src/amd64
-
       - name: Build ARM Docker image
         id: build
         uses: docker/build-push-action@v4
@@ -154,120 +128,92 @@ jobs:
             echo "Image 'immortalwrt:initial-arm64' not found. Rebuilding..."
             docker build -t immortalwrt:initial-arm64 --platform linux/arm64 ./src/arm64
           fi
-
       - name: Run container in immortalwrt-arm64
         run: |
           docker run -d --name immortalwrt-arm64 --platform linux/arm64 --privileged immortalwrt:initial-arm64 /bin/sh -c "while true; do sleep 1000; done"
-
       - name: Ensure directory exists in immortalwrt-arm64
         run: |
           docker exec immortalwrt-arm64 sh -c "mkdir -p /tmp/log /var/lock"
+      - name: Install packages in immortalwrt-arm64
+        run: |
+          docker cp ./src/ipk/ immortalwrt-arm64:/tmp/ipk/
+          docker exec immortalwrt-arm64 sh -c "
+            cd /tmp/ipk/arm
+            opkg update
+            opkg install *.ipk
+            opkg install curl
+            opkg install luci-i18n-argon-config-zh-cn
+          "
+      - name: Download and Run istore-reinstall.run in immortalwrt-arm64
+        if: ${{ github.event.inputs.arm_istore == 'true' }}
+        continue-on-error: true
+        run: |
+          docker exec immortalwrt-arm64 sh -c "mkdir -p /tmp/is-root/var/lock"
+          docker exec immortalwrt-arm64 sh -c "cd /tmp && wget -O istore-reinstall.run https://raw.githubusercontent.com/PlanetEditorX/immortalwrt/refs/heads/main/src/istore-reinstall.run && chmod 755 istore-reinstall.run && ./istore-reinstall.run"
+      - name: Install luci-i18n-quickstart-zh-cn in immortalwrt-arm64
+        if: ${{ github.event.inputs.arm_istore == 'true' }}
+        continue-on-error: true
+        run: |
+          docker exec immortalwrt-arm64 sh -c "/tmp/is-opkg opkg install luci-i18n-quickstart-zh-cn"
+      - name: Copy and install Are-u-ok in immortalwrt-arm64-online
+        continue-on-error: true
+        run: |
+          docker exec immortalwrt-arm64 sh -c "wget -qO PassWall2.run https://github.com/AUK9527/Are-u-ok/raw/main/apps/all/PassWall2_25.4.22_aarch64_a53_all_sdk_22.03.7.run && chmod +x PassWall2.run && ./PassWall2.run"
+          docker exec immortalwrt-arm64 sh -c "wget -qO OpenClash.run https://github.com/AUK9527/Are-u-ok/raw/main/apps/all/OpenClash_0.46.079+aarch64_core.run && chmod +x OpenClash.run && ./OpenClash.run"
 
-      # - name: Install packages in immortalwrt-arm64
-      #   run: |
-      #     docker cp ./src/ipk/ immortalwrt-arm64:/tmp/ipk/
-      #     docker exec immortalwrt-arm64 sh -c "
-      #       cd /tmp/ipk/arm
-      #       opkg update
-      #       opkg install *.ipk
-      #       opkg install curl
-      #       opkg install luci-i18n-argon-config-zh-cn
-      #     "
-
-      # - name: Download and Run istore-reinstall.run in immortalwrt-arm64
-      #   if: ${{ github.event.inputs.arm_istore == 'true' }}
-      #   continue-on-error: true
-      #   run: |
-      #     docker exec immortalwrt-arm64 sh -c "mkdir -p /tmp/is-root/var/lock"
-      #     docker exec immortalwrt-arm64 sh -c "cd /tmp && wget -O istore-reinstall.run https://raw.githubusercontent.com/PlanetEditorX/immortalwrt/refs/heads/main/src/istore-reinstall.run && chmod 755 istore-reinstall.run && ./istore-reinstall.run"
-
-      # - name: Install luci-i18n-quickstart-zh-cn in immortalwrt-arm64
-      #   if: ${{ github.event.inputs.arm_istore == 'true' }}
-      #   continue-on-error: true
-      #   run: |
-      #     docker exec immortalwrt-arm64 sh -c "/tmp/is-opkg opkg install luci-i18n-quickstart-zh-cn"
-
-      # - name: Install Are-u-ok in immortalwrt-arm64-online
-      #   continue-on-error: true
-      #   run: |
-      #     docker exec immortalwrt-arm64 sh -c "wget -qO PassWall2.run https://github.com/AUK9527/Are-u-ok/raw/main/apps/all/PassWall2_25.4.22_aarch64_a53_all_sdk_22.03.7.run && chmod +x PassWall2.run && ./PassWall2.run"
-      #     docker exec immortalwrt-arm64 sh -c "wget -qO OpenClash.run https://github.com/AUK9527/Are-u-ok/raw/main/apps/all/OpenClash_0.46.079+aarch64_core.run && chmod +x OpenClash.run && ./OpenClash.run"
-
-      # - name: Copy and install Are-u-ok in immortalwrt-arm64-local
-      #   if: failure()
-      #   continue-on-error: true
-      #   run: |
-      #     echo "在线安装异常转为本地安装"
-      #     docker exec immortalwrt-arm64 sh -c "
-      #       cd /tmp/ipk/
-      #       ls -l
-      #       echo 'Update Package'
-      #       opkg update
-      #       echo 'Install OpenClash'
-      #       cd openclash
-      #       opkg install coreutils-nohup bash iptables dnsmasq-full curl ca-certificates ipset ip-full iptables-mod-tproxy iptables-mod-extra libcap libcap-bin ruby ruby-yaml kmod-tun kmod-inet-diag unzip luci-compat luci luci-base
-      #       opkg install *.ipk
-      #       echo 'Install PassWall2'
-      #       cd ../passwall2
-      #       opkg install *.ipk
-      #       cd passwall_packages_ipk_aarch64_generic
-      #       opkg install *.ipk
-      #     "
-
-      # - name: Copy core in immortalwrt-arm64
-      #   run: |
-      #     tar -xzf ./src/core/clash-linux-arm64.tar.gz
-      #     mv clash clash_meta
-      #     docker cp clash_meta immortalwrt-arm64:/etc/openclash/core/
-
-      # - name: Del unuse files in immortalwrt-arm64
-      #   run: |
-      #     docker exec immortalwrt-arm64 sh -c "rm -rf /tmp/ipk /tmp/core"
-
-      # - name: Replace values in config file
-      #   run: |
-      #     echo "1.当前网络配置路径"
-      #     CONFIG_PATH="./src/network"
-      #     echo $CONFIG_PATH
-
-      #     echo "2.替换默认配置"
-      #     sed -i "s/192.168.1.100/${{ github.event.inputs.ipaddr }}/g" "$CONFIG_PATH"
-      #     sed -i "s/192.168.1.1/${{ github.event.inputs.gateway }}/g" "$CONFIG_PATH"
-
-      #     echo "3.输出配置"
-      #     cat $CONFIG_PATH
-
-      #     echo "4.将文件内容存储到变量中"
-      #     NETWORK_CONFIG=$(cat "$CONFIG_PATH")
-
-      #     echo "5.将文件内容写入 $GITHUB_OUTPUT"
-      #     echo "NETWORK_CONFIG=$NETWORK_CONFIG" >> $GITHUB_OUTPUT
-
+      - name: Copy and install Are-u-ok in immortalwrt-arm64-local
+        if: failure()
+        continue-on-error: true
+        run: |
+          echo "转为本地安装"
+          docker exec immortalwrt-arm64 sh -c "
+            cd /tmp/ipk/
+            ls -l
+            echo 'Update Package'
+            opkg update
+            echo 'Install OpenClash'
+            cd openclash
+            opkg install coreutils-nohup bash iptables dnsmasq-full curl ca-certificates ipset ip-full iptables-mod-tproxy iptables-mod-extra libcap libcap-bin ruby ruby-yaml kmod-tun kmod-inet-diag unzip luci-compat luci luci-base
+            opkg install *.ipk
+            echo 'Install PassWall2'
+            cd ../passwall2
+            opkg install *.ipk
+            cd passwall_packages_ipk_aarch64_generic
+            opkg install *.ipk
+          "
+      - name: Copy core in immortalwrt-arm64
+        run: |
+          tar -xzf ./src/core/clash-linux-arm64.tar.gz
+          mv clash clash_meta
+          docker cp clash_meta immortalwrt-arm64:/etc/openclash/core/
+      - name: Del unuse files in immortalwrt-arm64
+        run: |
+          docker exec immortalwrt-arm64 sh -c "rm -rf /tmp/ipk /tmp/core"
       - name: Commit modified container in immortalwrt-arm64
         run: |
-          # 将配置覆盖 Docker容器中的 /etc/config/network 文件
-          docker cp ./src/network immortalwrt-arm64:/etc/config/network_new
-
-          docker exec immortalwrt-arm64 sh -c "
-            cd /etc/config/
-            rm /etc/config/network
-            mv network_new network
-            cat $network
-            echo "2.替换默认配置"
-            sed -i "s/192.168.1.100/${{ github.event.inputs.ipaddr }}/g" "$network"
-            sed -i "s/192.168.1.1/${{ github.event.inputs.gateway }}/g" "$network"
-          "
+          docker exec immortalwrt-arm64 sh -c "cat <<EOF > /etc/config/network
+            config interface 'loopback'
+            	option device 'lo'
+            	option proto 'static'
+            	option ipaddr '127.0.0.1'
+            	option netmask '255.0.0.0'
+            config interface 'lan'
+            	option proto 'static'
+            	option netmask '255.255.255.0'
+            	option ip6assign '60'
+            	option ipaddr '${{ github.event.inputs.ipaddr }}'
+            	option gateway '${{ github.event.inputs.gateway }}'
+            	option dns '223.5.5.5 1.1.1.1'
+            	option device 'eth0'
+            EOF"
           docker restart immortalwrt-arm64
           docker commit immortalwrt-arm64 immortalwrt:arm64
-
       - name: Run container and modify in immortalwrt-amd64
         run: |
           docker run -d --name immortalwrt-amd64 immortalwrt:initial-amd64 /bin/sh -c "while true; do sleep 1000; done"
-
       - name: Ensure directory exists in immortalwrt-amd64
         run: |
           docker exec immortalwrt-amd64 sh -c "mkdir -p /tmp/log /var/lock"
-
       - name: Install packages in immortalwrt-amd64
         run: |
           docker exec immortalwrt-amd64 sh -c "
@@ -276,44 +222,45 @@ jobs:
             opkg install luci-i18n-argon-config-zh-cn
             opkg install openssh-sftp-server
           "
-
       - name: Download and Run istore-reinstall.run in immortalwrt-amd64
         if: ${{ github.event.inputs.amd_istore == 'true' }}
         run: |
           docker exec immortalwrt-amd64 sh -c "mkdir -p /tmp/is-root/var/lock"
           docker exec immortalwrt-amd64 sh -c "cd /tmp && wget -O istore-reinstall.run https://github.com/linkease/openwrt-app-actions/raw/main/applications/luci-app-systools/root/usr/share/systools/istore-reinstall.run && chmod 755 istore-reinstall.run && ./istore-reinstall.run"
-
       - name: Install luci-i18n-quickstart-zh-cn in immortalwrt-amd64
         if: ${{ github.event.inputs.amd_istore == 'true' }}
         continue-on-error: true
         run: |
           docker exec immortalwrt-amd64 sh -c "/tmp/is-opkg opkg install luci-i18n-quickstart-zh-cn"
-
       - name: Install Are-u-ok in immortalwrt-amd64
         run: |
           docker exec immortalwrt-amd64 sh -c "wget -qO PassWall2.run https://github.com/AUK9527/Are-u-ok/raw/main/x86/all/PassWall2_25.4.22_x86_64_all_sdk_22.03.7.run && chmod +x PassWall2.run && ./PassWall2.run"
           docker exec immortalwrt-amd64 sh -c "wget -qO OpenClash.run https://github.com/AUK9527/Are-u-ok/raw/main/x86/all/OpenClash_0.46.079+x86_64_core.run && chmod +x OpenClash.run && ./OpenClash.run"
-
       - name: Commit modified container in immortalwrt-amd64
         run: |
-          # 从 $GITHUB_OUTPUT 中读取 NETWORK_CONFIG 的值
-          NETWORK_CONFIG=$(cat $GITHUB_OUTPUT | grep "NETWORK_CONFIG=" | cut -d'=' -f2)
-
-          # 将配置写入 Docker 容器中的 /etc/config/network 文件
           docker exec immortalwrt-amd64 sh -c "cat <<EOF > /etc/config/network
-          $NETWORK_CONFIG
-          EOF
-          "
+            config interface 'loopback'
+            	option device 'lo'
+            	option proto 'static'
+            	option ipaddr '127.0.0.1'
+            	option netmask '255.0.0.0'
+            config interface 'lan'
+            	option proto 'static'
+            	option netmask '255.255.255.0'
+            	option ip6assign '60'
+            	option ipaddr '${{ github.event.inputs.ipaddr }}'
+            	option gateway '${{ github.event.inputs.gateway }}'
+            	option dns '223.5.5.5 1.1.1.1'
+            	option device 'eth0'
+            EOF"
           docker restart immortalwrt-amd64
           docker commit immortalwrt-amd64 immortalwrt:amd64
-
       - name: Push modified Docker image amd64
         run: |
           docker tag immortalwrt:amd64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:amd
           docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:amd
           docker tag immortalwrt:amd64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-amd
           docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-amd
-
       - name: Push modified Docker image arm64
         run: |
           docker tag immortalwrt:arm64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:arm
@@ -322,6 +269,3 @@ jobs:
           docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:${{ steps.final_tags.outputs.tags }}-arm
           docker tag immortalwrt:arm64 ${{ secrets.DOCKER_USERNAME }}/immortalwrt:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/immortalwrt:latest
-
-
-
