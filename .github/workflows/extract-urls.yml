@@ -1,55 +1,30 @@
-name: Extract Specific URLs
+name: Extract URLs
 
 on:
-  workflow_dispatch:      # 允许手动触发
+  workflow_dispatch:
 
 jobs:
-  extract-urls:
+  extract:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout
+      uses: actions/checkout@v4
 
-      - name: Advanced Extraction with Python
-        run: |
-          wget -O url_list.md https://github.com/AUK9527/Are-u-ok/edit/main/apps/README.md
-          python3 <<EOF
-          import re
-          import json
-      
-          target_plugins = ['PassWall2', 'OpenClash']
-          pattern = re.compile(r'$(.*?)$$(https://.*?\.run)$')
-          
-          with open('url_list.md', 'r') as f:
-              urls = [
-                  url for line in f
-                  if any(plugin in line for plugin in target_plugins)
-                  for (text, url) in pattern.findall(line)
-                  if url.startswith('https://github.com/AUK9527/Are-u-ok/raw/main/apps/all/')
-              ]
-      
-          print(f"提取结果：{urls}")
-          with open('$GITHUB_OUTPUT', 'a') as f:
-              f.write(f"urls={json.dumps(urls)}\n")
-          EOF
+    - name: Download File
+      run: |
+        curl -sL "https://raw.githubusercontent.com/AUK9527/Are-u-ok/main/apps/README.md" -o url_list.md
 
+    - name: Extract URLs
+      run: |
+        grep -o 'https://.*run' url_list.md | grep -e 'PassWall2' -e 'OpenClash' > extracted_urls.txt
+        echo "Extracted URLs:"
+        cat extracted_urls.txt
 
-      - name: Extract Target URLs
-        id: extract
-        run: |
-          # 定义精准匹配的正则表达式
-          PATTERN='https:\/\/github\.com\/AUK9527\/Are-u-ok\/raw\/main\/apps\/all\/(PassWall2_.+?\.run|OpenClash_.+?\.run)'
-          
-          # 提取目标 URL 并去重
-          URLS=$(grep -oE "$PATTERN" url_list.md | sort -u)
-          
-          # 转换为 JSON 数组
-          JSON_URLS=$(jq -n --arg urls "$URLS" '$urls | split("\n") | map(select(. != ""))')
-          
-          # 输出结果
-          echo "urls=$JSON_URLS" >> $GITHUB_OUTPUT
+    - name: Set Output
+      id: set_output
+      run: |
+        urls=$(cat extracted_urls.txt | tr '\n' ' ')
+        echo "urls=$urls" >> $GITHUB_OUTPUT
 
-      - name: Show Results
-        run: |
-          echo "提取到的目标 URL："
-          echo '${{ steps.extract.outputs.urls }}' | jq -r '.[]'
+    outputs:
+      urls: ${{ steps.set_output.outputs.urls }}
