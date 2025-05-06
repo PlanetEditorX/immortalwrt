@@ -166,16 +166,17 @@ jobs:
         run: |
           docker exec immortalwrt-arm64 sh -c "/tmp/is-opkg opkg install luci-i18n-quickstart-zh-cn"
 
-      # - name: Copy and install Are-u-ok in immortalwrt-arm64-online
-      #   continue-on-error: true
-      #   run: |          
-      #     docker exec immortalwrt-arm64 sh -c "wget -qO PassWall2.run https://github.com/AUK9527/Are-u-ok/raw/main/apps/all/PassWall2_25.4.22_aarch64_a53_all_sdk_22.03.7.run && chmod +x PassWall2.run && ./PassWall2.run"
-      #     docker exec immortalwrt-arm64 sh -c "wget -qO OpenClash.run https://github.com/AUK9527/Are-u-ok/raw/main/apps/all/OpenClash_0.46.079+aarch64_core.run && chmod +x OpenClash.run && ./OpenClash.run"
-      #   if: failure()
+      - name: Copy and install Are-u-ok in immortalwrt-arm64-online
+        continue-on-error: true
+        run: |          
+          docker exec immortalwrt-arm64 sh -c "wget -qO PassWall2.run https://github.com/AUK9527/Are-u-ok/raw/main/apps/all/PassWall2_25.4.22_aarch64_a53_all_sdk_22.03.7.run && chmod +x PassWall2.run && ./PassWall2.run"
+          docker exec immortalwrt-arm64 sh -c "wget -qO OpenClash.run https://github.com/AUK9527/Are-u-ok/raw/main/apps/all/OpenClash_0.46.079+aarch64_core.run && chmod +x OpenClash.run && ./OpenClash.run"
       
       - name: Copy and install Are-u-ok in immortalwrt-arm64-local
+        if: failure()
         continue-on-error: true
         run: |
+          echo "转为本地安装"
           docker exec immortalwrt-arm64 sh -c "
             cd /tmp/ipk/
             ls -l
@@ -220,6 +221,7 @@ jobs:
             	option dns '223.5.5.5 1.1.1.1'
             	option device 'eth0'
             EOF"
+          docker restart immortalwrt-arm64
           docker commit immortalwrt-arm64 immortalwrt:arm64
 
       - name: Run container and modify in immortalwrt-amd64
@@ -274,6 +276,7 @@ jobs:
             	option dns '223.5.5.5 1.1.1.1'
             	option device 'eth0'
             EOF"
+          docker restart immortalwrt-amd64
           docker commit immortalwrt-amd64 immortalwrt:amd64
 
       - name: Push modified Docker image amd64
