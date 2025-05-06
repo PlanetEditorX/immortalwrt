@@ -229,11 +229,12 @@ jobs:
           docker cp ./src/network immortalwrt-arm64:/etc/config
 
           docker exec immortalwrt-arm64 sh -c "
-          CONFIG_PATH="./src/network"
+          CONFIG_PATH="./etc/config/network"
+          cat $CONFIG_PATH
           echo "2.替换默认配置"
           sed -i "s/192.168.1.100/${{ github.event.inputs.ipaddr }}/g" "$CONFIG_PATH"
           sed -i "s/192.168.1.1/${{ github.event.inputs.gateway }}/g" "$CONFIG_PATH"
-          "
+          
           docker restart immortalwrt-arm64
           docker commit immortalwrt-arm64 immortalwrt:arm64
 
