@@ -206,8 +206,7 @@ jobs:
       - name: Replace values in config file
         run: |
           # 读取默认网络配置文件
-          CONFIG_FILE="./src/network"
-          CONFIG_FILE=$(cat "$CONFIG_FILE")
+          CONFIG_FILE=$(cat "./src/network")
 
           # 替换默认配置
           sed -i "s/192.168.1.100/${{ github.event.inputs.ipaddr }}/g" "$CONFIG_FILE"
