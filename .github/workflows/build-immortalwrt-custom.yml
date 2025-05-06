@@ -206,21 +206,21 @@ jobs:
       - name: Commit modified container in immortalwrt-arm64
         run: |
           docker exec immortalwrt-arm64 sh -c "cat <<EOF > /etc/config/network
-            config interface 'loopback'
-            	option device 'lo'
-            	option proto 'static'
-            	option ipaddr '127.0.0.1'
-            	option netmask '255.0.0.0'
+          config interface 'loopback'
+            option device 'lo'
+            option proto 'static'
+            option ipaddr '127.0.0.1'
+            option netmask '255.0.0.0'
 
-            config interface 'lan'
-            	option proto 'static'
-            	option netmask '255.255.255.0'
-            	option ip6assign '60'
-            	option ipaddr '${{ github.event.inputs.ipaddr }}'
-            	option gateway '${{ github.event.inputs.gateway }}'
-            	option dns '223.5.5.5 1.1.1.1'
-            	option device 'eth0'
-            EOF"
+          config interface 'lan'
+            option proto 'static'
+            option netmask '255.255.255.0'
+            option ip6assign '60'
+            option ipaddr '${{ github.event.inputs.ipaddr }}'
+            option gateway '${{ github.event.inputs.gateway }}'
+            option dns '223.5.5.5 1.1.1.1'
+            option device 'eth0'
+          EOF"
           docker restart immortalwrt-arm64
           docker commit immortalwrt-arm64 immortalwrt:arm64
 
@@ -261,21 +261,21 @@ jobs:
       - name: Commit modified container in immortalwrt-amd64
         run: |
           docker exec immortalwrt-amd64 sh -c "cat <<EOF > /etc/config/network
-            config interface 'loopback'
-            	option device 'lo'
-            	option proto 'static'
-            	option ipaddr '127.0.0.1'
-            	option netmask '255.0.0.0'
+          config interface 'loopback'
+            option device 'lo'
+            option proto 'static'
+            option ipaddr '127.0.0.1'
+            option netmask '255.0.0.0'
 
-            config interface 'lan'
-            	option proto 'static'
-            	option netmask '255.255.255.0'
-            	option ip6assign '60'
-            	option ipaddr '${{ github.event.inputs.ipaddr }}'
-            	option gateway '${{ github.event.inputs.gateway }}'
-            	option dns '223.5.5.5 1.1.1.1'
-            	option device 'eth0'
-            EOF"
+          config interface 'lan'
+            option proto 'static'
+            option netmask '255.255.255.0'
+            option ip6assign '60'
+            option ipaddr '${{ github.event.inputs.ipaddr }}'
+            option gateway '${{ github.event.inputs.gateway }}'
+            option dns '223.5.5.5 1.1.1.1'
+            option device 'eth0'
+          EOF"
           docker restart immortalwrt-amd64
           docker commit immortalwrt-amd64 immortalwrt:amd64
 
