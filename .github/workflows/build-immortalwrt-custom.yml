@@ -168,10 +168,10 @@ jobs:
 
       - name: Install Are-u-ok in immortalwrt-arm64-online
         continue-on-error: true
-        run: |          
+        run: |
           docker exec immortalwrt-arm64 sh -c "wget -qO PassWall2.run https://github.com/AUK9527/Are-u-ok/raw/main/apps/all/PassWall2_25.4.22_aarch64_a53_all_sdk_22.03.7.run && chmod +x PassWall2.run && ./PassWall2.run"
           docker exec immortalwrt-arm64 sh -c "wget -qO OpenClash.run https://github.com/AUK9527/Are-u-ok/raw/main/apps/all/OpenClash_0.46.079+aarch64_core.run && chmod +x OpenClash.run && ./OpenClash.run"
-      
+
       - name: Copy and install Are-u-ok in immortalwrt-arm64-local
         if: failure()
         continue-on-error: true
@@ -203,9 +203,27 @@ jobs:
         run: |
           docker exec immortalwrt-arm64 sh -c "rm -rf /tmp/ipk /tmp/core"
 
+      - name: Replace values in config file
+        run: |
+          # 读取默认网络配置文件
+          CONFIG_FILE="./src/network"
+          CONFIG_FILE=$(cat "$CONFIG_FILE")
+
+          # 替换默认配置
+          sed -i "s/192.168.1.100/${{ github.event.inputs.ipaddr }}/g" "$CONFIG_FILE"
+          sed -i "s/192.168.1.1/${{ github.event.inputs.gateway }}/g" "$CONFIG_FILE"
+
+          # 输出配置
+          cat "$CONFIG_FILE"
+          echo "NETWORK_CONFIG=$CONFIG_FILE" >> $GITHUB_OUTPUT
+
       - name: Commit modified container in immortalwrt-arm64
         run: |
-          docker exec immortalwrt-arm64 sh -c "echo -e 'config interface \'loopback\'\noption device \'lo\'\noption proto \'static\'\noption ipaddr \'127.0.0.1\'\noption netmask \'255.0.0.0\'\n\nconfig interface \'lan\'\noption proto \'static\'\noption netmask \'255.255.255.0\'\noption ip6assign \'60\'\noption ipaddr \'\${{ github.event.inputs.ipaddr }}\'\noption gateway \'\${{ github.event.inputs.gateway }}\'\noption dns \'223.5.5.5 1.1.1.1\'\noption device \'eth0\'' > /etc/config/network"
+          docker exec immortalwrt-arm64 sh -c "
+          cat <<EOF > /etc/config/network
+          ${{ NETWORK_CONFIG }}
+          EOF
+          "
           docker restart immortalwrt-arm64
           docker commit immortalwrt-arm64 immortalwrt:arm64
 
@@ -245,8 +263,11 @@ jobs:
 
       - name: Commit modified container in immortalwrt-amd64
         run: |
-          docker exec immortalwrt-amd64 sh -c "cat <<EOF > /etc/config/network
-          docker exec immortalwrt-arm64 sh -c "echo -e 'config interface \'loopback\'\noption device \'lo\'\noption proto \'static\'\noption ipaddr \'127.0.0.1\'\noption netmask \'255.0.0.0\'\n\nconfig interface \'lan\'\noption proto \'static\'\noption netmask \'255.255.255.0\'\noption ip6assign \'60\'\noption ipaddr \'\${{ github.event.inputs.ipaddr }}\'\noption gateway \'\${{ github.event.inputs.gateway }}\'\noption dns \'223.5.5.5 1.1.1.1\'\noption device \'eth0\'' > /etc/config/network"
+          docker exec immortalwrt-amd64 sh -c "
+          cat <<EOF > /etc/config/network
+          ${{ NETWORK_CONFIG }}
+          EOF
+          "
           docker restart immortalwrt-amd64
           docker commit immortalwrt-amd64 immortalwrt:amd64
 
