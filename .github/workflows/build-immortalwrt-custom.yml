@@ -191,21 +191,21 @@ jobs:
           docker exec immortalwrt-arm64 sh -c "rm -rf /tmp/ipk /tmp/core"
       - name: Commit modified container in immortalwrt-arm64
         run: |
-          docker exec immortalwrt-arm64 sh -c "cat <<EOF > /etc/config/network
-            config interface 'loopback'
-            	option device 'lo'
-            	option proto 'static'
-            	option ipaddr '127.0.0.1'
-            	option netmask '255.0.0.0'
-            config interface 'lan'
-            	option proto 'static'
-            	option netmask '255.255.255.0'
-            	option ip6assign '60'
-            	option ipaddr '${{ github.event.inputs.ipaddr }}'
-            	option gateway '${{ github.event.inputs.gateway }}'
-            	option dns '223.5.5.5 1.1.1.1'
-            	option device 'eth0'
-            EOF"
+          docker exec immortalwrt-arm64 sh -c "
+          echo 'config interface '\''loopback'\''' > /etc/config/network
+          echo '    option device '\''lo'\''' >> /etc/config/network
+          echo '    option proto '\''static'\''' >> /etc/config/network
+          echo '    option ipaddr '\''127.0.0.1'\''' >> /etc/config/network
+          echo '    option netmask '\''255.0.0.0'\''' >> /etc/config/network
+          echo 'config interface '\''lan'\''' >> /etc/config/network
+          echo '    option proto '\''static'\''' >> /etc/config/network
+          echo '    option netmask '\''255.255.255.0'\''' >> /etc/config/network
+          echo '    option ip6assign '\''60'\''' >> /etc/config/network
+          echo '    option ipaddr '\''${{ github.event.inputs.ipaddr }}'\''' >> /etc/config/network
+          echo '    option gateway '\''${{ github.event.inputs.gateway }}'\''' >> /etc/config/network
+          echo '    option dns '\''223.5.5.5 1.1.1.1'\''' >> /etc/config/network
+          echo '    option device '\''eth0'\''' >> /etc/config/network
+          "
           docker restart immortalwrt-arm64
           docker commit immortalwrt-arm64 immortalwrt:arm64
       - name: Run container and modify in immortalwrt-amd64
@@ -238,21 +238,21 @@ jobs:
           docker exec immortalwrt-amd64 sh -c "wget -qO OpenClash.run https://github.com/AUK9527/Are-u-ok/raw/main/x86/all/OpenClash_0.46.079+x86_64_core.run && chmod +x OpenClash.run && ./OpenClash.run"
       - name: Commit modified container in immortalwrt-amd64
         run: |
-          docker exec immortalwrt-amd64 sh -c "cat <<EOF > /etc/config/network
-            config interface 'loopback'
-            	option device 'lo'
-            	option proto 'static'
-            	option ipaddr '127.0.0.1'
-            	option netmask '255.0.0.0'
-            config interface 'lan'
-            	option proto 'static'
-            	option netmask '255.255.255.0'
-            	option ip6assign '60'
-            	option ipaddr '${{ github.event.inputs.ipaddr }}'
-            	option gateway '${{ github.event.inputs.gateway }}'
-            	option dns '223.5.5.5 1.1.1.1'
-            	option device 'eth0'
-            EOF"
+          docker exec immortalwrt-arm64 sh -c "
+          echo 'config interface '\''loopback'\''' > /etc/config/network
+          echo '    option device '\''lo'\''' >> /etc/config/network
+          echo '    option proto '\''static'\''' >> /etc/config/network
+          echo '    option ipaddr '\''127.0.0.1'\''' >> /etc/config/network
+          echo '    option netmask '\''255.0.0.0'\''' >> /etc/config/network
+          echo 'config interface '\''lan'\''' >> /etc/config/network
+          echo '    option proto '\''static'\''' >> /etc/config/network
+          echo '    option netmask '\''255.255.255.0'\''' >> /etc/config/network
+          echo '    option ip6assign '\''60'\''' >> /etc/config/network
+          echo '    option ipaddr '\''${{ github.event.inputs.ipaddr }}'\''' >> /etc/config/network
+          echo '    option gateway '\''${{ github.event.inputs.gateway }}'\''' >> /etc/config/network
+          echo '    option dns '\''223.5.5.5 1.1.1.1'\''' >> /etc/config/network
+          echo '    option device '\''eth0'\''' >> /etc/config/network
+          "
           docker restart immortalwrt-amd64
           docker commit immortalwrt-amd64 immortalwrt:amd64
       - name: Push modified Docker image amd64
