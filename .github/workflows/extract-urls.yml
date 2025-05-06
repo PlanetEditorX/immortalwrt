@@ -12,7 +12,7 @@ jobs:
 
       - name: Advanced Extraction with Python
         run: |
-          wget https://github.com/AUK9527/Are-u-ok/edit/main/apps/README.md
+          wget -O url_list.md https://github.com/AUK9527/Are-u-ok/edit/main/apps/README.md
           python3 <<EOF
           import re
           import json
@@ -20,7 +20,7 @@ jobs:
           target_plugins = ['PassWall2', 'OpenClash']
           pattern = re.compile(r'$(.*?)$$(https://.*?\.run)$')
           
-          with open('apps/README.md', 'r') as f:
+          with open('url_list.md', 'r') as f:
               urls = [
                   url for line in f
                   if any(plugin in line for plugin in target_plugins)
@@ -41,7 +41,7 @@ jobs:
           PATTERN='https:\/\/github\.com\/AUK9527\/Are-u-ok\/raw\/main\/apps\/all\/(PassWall2_.+?\.run|OpenClash_.+?\.run)'
           
           # 提取目标 URL 并去重
-          URLS=$(grep -oE "$PATTERN" apps/README.md | sort -u)
+          URLS=$(grep -oE "$PATTERN" url_list.md | sort -u)
           
           # 转换为 JSON 数组
           JSON_URLS=$(jq -n --arg urls "$URLS" '$urls | split("\n") | map(select(. != ""))')
