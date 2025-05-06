@@ -105,7 +105,7 @@ jobs:
 
       - name: Move rootfs.tar.gz to build context
         run: |
-          mkdir -p ./src/arm64 ./src/amd64
+          mkdir -p ./src/arm64/tmp ./src/amd64/tmp
           tar -xvf immortalwrt/rootfs_arm64.tar -C ./src/arm64/tmp
           tar -xvf immortalwrt/rootfs_amd64.tar -C ./src/amd64/tmp
           # mv immortalwrt/rootfs_amd64.tar ./src/amd64/rootfs.tar
