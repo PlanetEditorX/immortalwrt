@@ -35,6 +35,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Replace values in config file
+        run: |
+          echo "当前网络配置路径"
+          CONFIG_PATH="./src/network"
+          echo $CONFIG_PATH
+
+          echo "替换默认配置"
+          sed -i "s/192.168.1.100/${{ github.event.inputs.ipaddr }}/g" "$CONFIG_PATH"
+          sed -i "s/192.168.1.1/${{ github.event.inputs.gateway }}/g" "$CONFIG_PATH"
+
+
+          echo "输出配置"
+          cat $CONFIG_PATH
+          NETWORK_CONFIG=$(cat $CONFIG_PATH)
+          cat "$NETWORK_CONFIG"
+          echo "NETWORK_CONFIG=$NETWORK_CONFIG" >> $GITHUB_OUTPUT
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -46,21 +63,6 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Replace values in config file
-        run: |
-          # 读取默认网络配置文件
-          CONFIG_PATH="./src/network"
-
-          # 替换默认配置
-          sed -i "s/192.168.1.100/${{ github.event.inputs.ipaddr }}/g" "$CONFIG_PATH"
-          sed -i "s/192.168.1.1/${{ github.event.inputs.gateway }}/g" "$CONFIG_PATH"
-
-
-          # 输出配置
-          NETWORK_CONFIG=$(cat $CONFIG_PATH)
-          cat "$NETWORK_CONFIG"
-          echo "NETWORK_CONFIG=$NETWORK_CONFIG" >> $GITHUB_OUTPUT
 
       - name: Get version
         id: get_version
