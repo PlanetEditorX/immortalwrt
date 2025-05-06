@@ -48,9 +48,9 @@ jobs:
 
           echo "输出配置"
           cat $CONFIG_PATH
-          NETWORK_CONFIG=$(cat "$CONFIG_PATH")
-          cat "$NETWORK_CONFIG"
-          echo "NETWORK_CONFIG=$NETWORK_CONFIG" >> $GITHUB_OUTPUT
+          # NETWORK_CONFIG=$(cat "$CONFIG_PATH")
+          # cat "$NETWORK_CONFIG"
+          echo "NETWORK_CONFIG=$CONFIG_PATH" >> $GITHUB_OUTPUT
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
