@@ -219,9 +219,8 @@ jobs:
 
       - name: Commit modified container in immortalwrt-arm64
         run: |
-          docker exec immortalwrt-arm64 sh -c "
-          cat <<EOF > /etc/config/network
-          ${{ NETWORK_CONFIG }}
+          docker exec immortalwrt-arm64 sh -c "cat <<EOF > /etc/config/network
+          $NETWORK_CONFIG
           EOF
           "
           docker restart immortalwrt-arm64
@@ -263,9 +262,8 @@ jobs:
 
       - name: Commit modified container in immortalwrt-amd64
         run: |
-          docker exec immortalwrt-amd64 sh -c "
-          cat <<EOF > /etc/config/network
-          ${{ NETWORK_CONFIG }}
+          docker exec immortalwrt-amd64 sh -c "cat <<EOF > /etc/config/network
+          $NETWORK_CONFIG
           EOF
           "
           docker restart immortalwrt-amd64
