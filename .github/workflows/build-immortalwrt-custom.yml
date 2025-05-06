@@ -206,13 +206,13 @@ jobs:
       - name: Commit modified container in immortalwrt-arm64
         run: |
           docker exec immortalwrt-arm64 sh -c "cat <<EOF > /etc/config/network
-          config interface 'loopback'
+        config interface 'loopback'
             option device 'lo'
             option proto 'static'
             option ipaddr '127.0.0.1'
             option netmask '255.0.0.0'
 
-          config interface 'lan'
+        config interface 'lan'
             option proto 'static'
             option netmask '255.255.255.0'
             option ip6assign '60'
@@ -261,13 +261,13 @@ jobs:
       - name: Commit modified container in immortalwrt-amd64
         run: |
           docker exec immortalwrt-amd64 sh -c "cat <<EOF > /etc/config/network
-          config interface 'loopback'
+        config interface 'loopback'
             option device 'lo'
             option proto 'static'
             option ipaddr '127.0.0.1'
             option netmask '255.0.0.0'
 
-          config interface 'lan'
+        config interface 'lan'
             option proto 'static'
             option netmask '255.255.255.0'
             option ip6assign '60'
