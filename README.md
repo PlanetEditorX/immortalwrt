@@ -7,8 +7,8 @@
 ### 2. Docker 中创建一个 macvlan 网络
   ```bash
   docker network create -d macvlan \
-  --subnet=192.168.3.0/24 \
-  --gateway=192.168.3.1 \
+  --subnet=192.168.1.0/24 \
+  --gateway=192.168.1.1 \
   -o parent=eth0 \
   macnet
   ```
@@ -20,7 +20,7 @@
   - macvlan 的一个特性是宿主机无法直接与容器通信。如果你的需求是让宿主机与 OpenWrt 容器通信，你需要在宿主机上创建一个虚拟接口（通常称为 macvlan 子接口），并将其加入同一 macvlan 网络。
   ```bash
   ip link add macvlan-shim link eth0 type macvlan mode bridge
-  ip addr add 192.168.3.11/24 dev macvlan-shim
+  ip addr add 192.168.1.11/24 dev macvlan-shim
   ip link set macvlan-shim up
   ```
 ### 5.拉取镜像
@@ -54,8 +54,8 @@
     option proto 'static'
     option netmask '255.255.255.0'
     option ipbassign '60'
-    option ipaddr '192.168.3.100'
-    option gateway '192.168.3.1'
+    option ipaddr '192.168.1.100'
+    option gateway '192.168.1.1'
     option dns '223.5.5.5 1.1.1.1'
     option device 'eth0'
   EOF
