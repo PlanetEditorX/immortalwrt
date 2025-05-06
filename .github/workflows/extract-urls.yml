@@ -1,9 +1,6 @@
 name: Extract Specific URLs
 
 on:
-  push:
-    paths:
-      - 'apps/README.md'  # 监控 README.md 的变化
   workflow_dispatch:      # 允许手动触发
 
 jobs:
@@ -12,6 +9,29 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Advanced Extraction with Python
+        run: |
+          python3 <<EOF
+          import re
+          import json
+      
+          target_plugins = ['PassWall2', 'OpenClash']
+          pattern = re.compile(r'$(.*?)$$(https://.*?\.run)$')
+          wget https://github.com/AUK9527/Are-u-ok/edit/main/apps/README.md
+          with open('apps/README.md', 'r') as f:
+              urls = [
+                  url for line in f
+                  if any(plugin in line for plugin in target_plugins)
+                  for (text, url) in pattern.findall(line)
+                  if url.startswith('https://github.com/AUK9527/Are-u-ok/raw/main/apps/all/')
+              ]
+      
+          print(f"提取结果：{urls}")
+          with open('$GITHUB_OUTPUT', 'a') as f:
+              f.write(f"urls={json.dumps(urls)}\n")
+          EOF
+
 
       - name: Extract Target URLs
         id: extract
