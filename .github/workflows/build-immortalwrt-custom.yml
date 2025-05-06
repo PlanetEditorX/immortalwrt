@@ -36,25 +36,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Replace values in config file
-        run: |
-          echo "1.当前网络配置路径"
-          CONFIG_PATH="./src/network"
-          echo $CONFIG_PATH
-
-          echo "2.替换默认配置"
-          sed -i "s/192.168.1.100/${{ github.event.inputs.ipaddr }}/g" "$CONFIG_PATH"
-          sed -i "s/192.168.1.1/${{ github.event.inputs.gateway }}/g" "$CONFIG_PATH"
-
-          echo "3.输出配置"
-          cat $CONFIG_PATH
-
-          echo "4.将文件内容存储到变量中"
-          NETWORK_CONFIG=$(cat "$CONFIG_PATH")
-
-          echo "5.将文件内容写入 $GITHUB_OUTPUT"
-          echo "NETWORK_CONFIG=$NETWORK_CONFIG" >> $GITHUB_OUTPUT
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -223,34 +204,35 @@ jobs:
         run: |
           docker exec immortalwrt-arm64 sh -c "rm -rf /tmp/ipk /tmp/core"
 
-      - name: Replace values in config file
-        run: |
-          echo "1.当前网络配置路径"
-          CONFIG_PATH="./src/network"
-          echo $CONFIG_PATH
+      # - name: Replace values in config file
+      #   run: |
+      #     echo "1.当前网络配置路径"
+      #     CONFIG_PATH="./src/network"
+      #     echo $CONFIG_PATH
 
-          echo "2.替换默认配置"
-          sed -i "s/192.168.1.100/${{ github.event.inputs.ipaddr }}/g" "$CONFIG_PATH"
-          sed -i "s/192.168.1.1/${{ github.event.inputs.gateway }}/g" "$CONFIG_PATH"
+      #     echo "2.替换默认配置"
+      #     sed -i "s/192.168.1.100/${{ github.event.inputs.ipaddr }}/g" "$CONFIG_PATH"
+      #     sed -i "s/192.168.1.1/${{ github.event.inputs.gateway }}/g" "$CONFIG_PATH"
 
-          echo "3.输出配置"
-          cat $CONFIG_PATH
+      #     echo "3.输出配置"
+      #     cat $CONFIG_PATH
 
-          echo "4.将文件内容存储到变量中"
-          NETWORK_CONFIG=$(cat "$CONFIG_PATH")
+      #     echo "4.将文件内容存储到变量中"
+      #     NETWORK_CONFIG=$(cat "$CONFIG_PATH")
 
-          echo "5.将文件内容写入 $GITHUB_OUTPUT"
-          echo "NETWORK_CONFIG=$NETWORK_CONFIG" >> $GITHUB_OUTPUT
+      #     echo "5.将文件内容写入 $GITHUB_OUTPUT"
+      #     echo "NETWORK_CONFIG=$NETWORK_CONFIG" >> $GITHUB_OUTPUT
 
       - name: Commit modified container in immortalwrt-arm64
         run: |
-          # 从 $GITHUB_OUTPUT 中读取 NETWORK_CONFIG 的值
-          NETWORK_CONFIG=$(cat $GITHUB_OUTPUT | grep "NETWORK_CONFIG=" | cut -d'=' -f2)
+          # 将配置覆盖 Docker容器中的 /etc/config/network 文件
+          docker cp ./src/network immortalwrt-arm64:/etc/config
 
-          # 将配置写入 Docker 容器中的 /etc/config/network 文件
-          docker exec immortalwrt-arm64 sh -c "cat <<EOF > /etc/config/network
-          $NETWORK_CONFIG
-          EOF
+          docker exec immortalwrt-arm64 sh -c "
+          CONFIG_PATH="./src/network"
+          echo "2.替换默认配置"
+          sed -i "s/192.168.1.100/${{ github.event.inputs.ipaddr }}/g" "$CONFIG_PATH"
+          sed -i "s/192.168.1.1/${{ github.event.inputs.gateway }}/g" "$CONFIG_PATH"
           "
           docker restart immortalwrt-arm64
           docker commit immortalwrt-arm64 immortalwrt:arm64
