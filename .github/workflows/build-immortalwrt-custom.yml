@@ -47,6 +47,21 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      - name: Replace values in config file
+        run: |
+          # 读取默认网络配置文件
+          CONFIG_PATH="./src/network"
+
+          # 替换默认配置
+          sed -i "s/192.168.1.100/${{ github.event.inputs.ipaddr }}/g" "$CONFIG_PATH"
+          sed -i "s/192.168.1.1/${{ github.event.inputs.gateway }}/g" "$CONFIG_PATH"
+
+
+          # 输出配置
+          NETWORK_CONFIG=$(cat $CONFIG_PATH)
+          cat "$NETWORK_CONFIG"
+          echo "NETWORK_CONFIG=$NETWORK_CONFIG" >> $GITHUB_OUTPUT
+
       - name: Get version
         id: get_version
         run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
@@ -206,15 +221,17 @@ jobs:
       - name: Replace values in config file
         run: |
           # 读取默认网络配置文件
-          CONFIG_FILE=$(cat ./src/network)
+          CONFIG_PATH="./src/network"
 
           # 替换默认配置
-          sed -i "s/192.168.1.100/${{ github.event.inputs.ipaddr }}/g" "$CONFIG_FILE"
-          sed -i "s/192.168.1.1/${{ github.event.inputs.gateway }}/g" "$CONFIG_FILE"
+          sed -i "s/192.168.1.100/${{ github.event.inputs.ipaddr }}/g" "$CONFIG_PATH"
+          sed -i "s/192.168.1.1/${{ github.event.inputs.gateway }}/g" "$CONFIG_PATH"
+
 
           # 输出配置
-          cat "$CONFIG_FILE"
-          echo "NETWORK_CONFIG=$CONFIG_FILE" >> $GITHUB_OUTPUT
+          NETWORK_CONFIG=$(cat $CONFIG_PATH)
+          cat "$NETWORK_CONFIG"
+          echo "NETWORK_CONFIG=$NETWORK_CONFIG" >> $GITHUB_OUTPUT
 
       - name: Commit modified container in immortalwrt-arm64
         run: |
