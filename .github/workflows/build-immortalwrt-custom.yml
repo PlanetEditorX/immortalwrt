@@ -113,13 +113,13 @@ jobs:
 
       - name: Set Init
         run: |
-          # 修改默认 IP
+          echo "修改默认 IP"
           sed -i "s/192.168.1.1/${{ github.event.inputs.ipaddr }}/g" ./src/arm64/tmp/bin/config_generate
-          # 修改网关
-          sed -i "/set network.\$1.netmask/a set network.\$1.gateway='${{ github.event.inputs.gateway }}'" ./src/arm64/bin/config_generate
-          # 修改DNS
+          echo "修改网关"
+          sed -i "/set network.\$1.netmask/a set network.\$1.gateway='${{ github.event.inputs.gateway }}'" ./src/arm64/tmp/bin/config_generate
+          echo "修改DNS"
           sed -i "/set network.\$1.netmask/a set network.\$1.dns='127.0.0.1 223.5.5.5 8.8.8.8'" ./src/arm64/tmp/bin/config_generate
-          # 打包文件
+          echo "打包文件"
           tar -cf ./src/arm64/rootfs.tar ./src/arm64/tmp && rm -rf ./src/arm64/tmp
 
       - name: Build AMD Docker image
