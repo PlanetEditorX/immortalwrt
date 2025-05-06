@@ -216,10 +216,10 @@ jobs:
           echo "3.输出配置"
           cat $CONFIG_PATH
 
-          # 将文件内容存储到变量中
+          echo "4.将文件内容存储到变量中"
           NETWORK_CONFIG=$(cat $CONFIG_PATH)
 
-          # 将文件内容写入 $GITHUB_OUTPUT
+          echo "5.将文件内容写入 $GITHUB_OUTPUT"
           echo "NETWORK_CONFIG=$NETWORK_CONFIG" >> $GITHUB_OUTPUT
 
       - name: Commit modified container in immortalwrt-arm64
