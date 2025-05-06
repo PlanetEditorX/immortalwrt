@@ -60,6 +60,10 @@ jobs:
           } >> "$GITHUB_OUTPUT"
         env:
           GITHUB_OUTPUT: ${{ github.output_path }}
+          
+    - name: Show Output
+      run: |
+        echo "输出内容：${{ steps.network_step.outputs.NETWORK_CONFIG }}"
 
 
       - name: Set up QEMU
