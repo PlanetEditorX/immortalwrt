@@ -36,24 +36,31 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Replace values in config file
+      - name: Configure network
+        shell: bash
         run: |
-          echo "1.当前网络配置路径"
+          # 1.定义配置文件路径
           CONFIG_PATH="./src/network"
-          echo $CONFIG_PATH
+          echo "配置文件路径: $CONFIG_PATH"
 
-          echo "2.替换默认配置"
+          # 2.执行替换操作
           sed -i "s/192.168.1.100/${{ github.event.inputs.ipaddr }}/g" "$CONFIG_PATH"
           sed -i "s/192.168.1.1/${{ github.event.inputs.gateway }}/g" "$CONFIG_PATH"
 
-          echo "3.输出配置"
-          cat $CONFIG_PATH
+          # 3.验证替换结果
+          echo "当前配置文件内容："
+          cat "$CONFIG_PATH"
 
-          echo "4.将文件内容存储到变量中"
-          NETWORK_CONFIG=$(cat $CONFIG_PATH)
+          # 4.安全写入GitHub Output（处理多行文本）
+          DELIMITER="EOF_$(openssl rand -hex 6)"
+          {
+            echo "NETWORK_CONFIG<<$DELIMITER"
+            cat "$CONFIG_PATH"
+            echo "$DELIMITER"
+          } >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_OUTPUT: ${{ github.output_path }}
 
-          echo "5.将文件内容写入 $GITHUB_OUTPUT"
-          echo "NETWORK_CONFIG=$NETWORK_CONFIG" >> $GITHUB_OUTPUT
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
