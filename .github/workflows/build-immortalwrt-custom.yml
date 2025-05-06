@@ -105,9 +105,22 @@ jobs:
 
       - name: Move rootfs.tar.gz to build context
         run: |
-          mkdir -p ./src/amd64 ./src/arm64
-          mv immortalwrt/rootfs_amd64.tar ./src/amd64/rootfs.tar
-          mv immortalwrt/rootfs_arm64.tar ./src/arm64/rootfs.tar
+          mkdir -p ./src/arm64 ./src/amd64
+          tar -xvf immortalwrt/rootfs_arm64.tar -C ./src/arm64/tmp
+          tar -xvf immortalwrt/rootfs_amd64.tar -C ./src/amd64/tmp
+          # mv immortalwrt/rootfs_amd64.tar ./src/amd64/rootfs.tar
+          # mv immortalwrt/rootfs_arm64.tar ./src/arm64/rootfs.tar
+
+      - name: Set Init
+        run: |
+          # 修改默认 IP
+          sed -i "s/192.168.1.1/${{ github.event.inputs.ipaddr }}/g" ./src/arm64/tmp/bin/config_generate
+          # 修改网关
+          sed -i "/set network.\$1.netmask/a set network.\$1.gateway='${{ github.event.inputs.gateway }}'" ./src/arm64/bin/config_generate
+          # 修改DNS
+          sed -i "/set network.\$1.netmask/a set network.\$1.dns='127.0.0.1 223.5.5.5 8.8.8.8'" ./src/arm64/tmp/bin/config_generate
+          # 打包文件
+          tar -cf ./src/arm64/rootfs.tar ./src/arm64/tmp && rm -rf ./src/arm64/tmp
 
       - name: Build AMD Docker image
         run: |
@@ -230,7 +243,7 @@ jobs:
 
           docker exec immortalwrt-arm64 sh -c "
             cd /etc/config/
-            rm network
+            rm /etc/config/network
             mv network_new network
             cat $network
             echo "2.替换默认配置"
