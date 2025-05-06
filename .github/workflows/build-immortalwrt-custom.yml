@@ -37,7 +37,6 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configure network
-        shell: bash
         run: |
           # 1.定义配置文件路径
           CONFIG_PATH="./src/network"
@@ -60,10 +59,10 @@ jobs:
           } >> "$GITHUB_OUTPUT"
         env:
           GITHUB_OUTPUT: ${{ github.output_path }}
-          
-    - name: Show Output
-      run: |
-        echo "输出内容：${{ steps.network_step.outputs.NETWORK_CONFIG }}"
+
+      - name: Show Output
+        run: |
+          echo "输出内容：${{ steps.network_step.outputs.NETWORK_CONFIG }}"
 
 
       - name: Set up QEMU
