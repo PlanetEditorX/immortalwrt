@@ -1,0 +1,34 @@
+name: Extract Specific URLs
+
+on:
+  push:
+    paths:
+      - 'apps/README.md'  # 监控 README.md 的变化
+  workflow_dispatch:      # 允许手动触发
+
+jobs:
+  extract-urls:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract Target URLs
+        id: extract
+        run: |
+          # 定义精准匹配的正则表达式
+          PATTERN='https:\/\/github\.com\/AUK9527\/Are-u-ok\/raw\/main\/apps\/all\/(PassWall2_.+?\.run|OpenClash_.+?\.run)'
+          
+          # 提取目标 URL 并去重
+          URLS=$(grep -oE "$PATTERN" apps/README.md | sort -u)
+          
+          # 转换为 JSON 数组
+          JSON_URLS=$(jq -n --arg urls "$URLS" '$urls | split("\n") | map(select(. != ""))')
+          
+          # 输出结果
+          echo "urls=$JSON_URLS" >> $GITHUB_OUTPUT
+
+      - name: Show Results
+        run: |
+          echo "提取到的目标 URL："
+          echo '${{ steps.extract.outputs.urls }}' | jq -r '.[]'
