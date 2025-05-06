@@ -1,6 +1,7 @@
 name: Build Immortalwrt Custom
 
 on:
+  push:
   schedule:
     - cron: '0 10 * * 1'  # 每周一的上午10点（UTC时间，对应北京时间下午6点）
   workflow_dispatch:
