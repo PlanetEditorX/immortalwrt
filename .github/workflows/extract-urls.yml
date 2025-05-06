@@ -12,13 +12,14 @@ jobs:
 
       - name: Advanced Extraction with Python
         run: |
+          wget https://github.com/AUK9527/Are-u-ok/edit/main/apps/README.md
           python3 <<EOF
           import re
           import json
       
           target_plugins = ['PassWall2', 'OpenClash']
           pattern = re.compile(r'$(.*?)$$(https://.*?\.run)$')
-          wget https://github.com/AUK9527/Are-u-ok/edit/main/apps/README.md
+          
           with open('apps/README.md', 'r') as f:
               urls = [
                   url for line in f
