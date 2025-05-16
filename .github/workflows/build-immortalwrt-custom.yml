@@ -59,6 +59,7 @@ jobs:
           TAGS_RESPONSE=$(curl -s $TAGS_URL)
           LATEST_TAG=$(echo $TAGS_RESPONSE | jq -r '.results[] | .name' | sort -V | tail -n1 | awk -F'-' '{print $1}')
           echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
+      
       - name: Increment version
         run: |
           # 读取最新版本号并分割为数组
@@ -78,6 +79,7 @@ jobs:
           # 构造新版本号
           NEW_VERSION="$major.$minor.$patch"
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+      
       - name: Show New Version
         run: echo $NEW_VERSION
 
@@ -91,6 +93,7 @@ jobs:
           else
             echo "tags=$NEW_VERSION" >> $GITHUB_OUTPUT
           fi
+      
       - name: Download and Extract RootFS
         run: |
           mkdir -p immortalwrt
@@ -99,16 +102,19 @@ jobs:
           wget -O rootfs_arm64.tar.gz https://downloads.immortalwrt.org/releases/24.10.0-rc3/targets/armsr/armv8/immortalwrt-24.10.0-rc3-armsr-armv8-rootfs.tar.gz
           gzip -d rootfs_amd64.tar.gz
           gzip -d rootfs_arm64.tar.gz
+      
       - name: Move rootfs.tar.gz to build context
         run: |
           mkdir -p ./src/amd64 ./src/arm64
           mv immortalwrt/rootfs_amd64.tar ./src/amd64/rootfs.tar
           mv immortalwrt/rootfs_arm64.tar ./src/arm64/rootfs.tar
+      
       - name: Build AMD Docker image
         run: |
           cp ./src/Dockerfile ./src/amd64
           cp ./src/Dockerfile ./src/arm64
           docker build -t immortalwrt:initial-amd64 ./src/amd64
+      
       - name: Build ARM Docker image
         id: build
         uses: docker/build-push-action@v4
@@ -150,16 +156,19 @@ jobs:
         run: |
           docker exec immortalwrt-arm64 sh -c "mkdir -p /tmp/is-root/var/lock"
           docker exec immortalwrt-arm64 sh -c "cd /tmp && wget -O istore-reinstall.run https://raw.githubusercontent.com/PlanetEditorX/immortalwrt/refs/heads/main/src/istore-reinstall.run && chmod 755 istore-reinstall.run && ./istore-reinstall.run"
+      
       - name: Install luci-i18n-quickstart-zh-cn in immortalwrt-arm64
         if: ${{ github.event.inputs.arm_istore == 'true' }}
         continue-on-error: true
         run: |
           docker exec immortalwrt-arm64 sh -c "/tmp/is-opkg opkg install luci-i18n-quickstart-zh-cn"
+      
       - name: Copy and install Are-u-ok in immortalwrt-arm64-online
         continue-on-error: true
         run: |
-          docker exec immortalwrt-arm64 sh -c "wget -qO PassWall2.run https://github.com/AUK9527/Are-u-ok/raw/main/apps/all/PassWall2_25.4.22_aarch64_a53_all_sdk_22.03.7.run && chmod +x PassWall2.run && ./PassWall2.run"
+          docker exec immortalwrt-arm64 sh -c "wget -qO PassWall2.run https://github.com/AUK9527/Are-u-ok/raw/main/apps/all/PassWall2_25.5.7_aarch64_a53_all_sdk_22.03.7.run && chmod +x PassWall2.run && ./PassWall2.run"
           docker exec immortalwrt-arm64 sh -c "wget -qO OpenClash.run https://github.com/AUK9527/Are-u-ok/raw/main/apps/all/OpenClash_0.46.079+aarch64_core.run && chmod +x OpenClash.run && ./OpenClash.run"
+      
       - name: Copy and install Are-u-ok in immortalwrt-arm64-local
         if: failure()
         continue-on-error: true
@@ -183,14 +192,14 @@ jobs:
           
       - name: Copy core in immortalwrt-arm64
         run: |
-          ls -l ./src/core/clash-linux-arm64.tar.gz
           tar -xzf ./src/core/clash-linux-arm64.tar.gz
-          ls -l
           mv clash clash_meta
           docker cp clash_meta immortalwrt-arm64:/etc/openclash/core/
+      
       - name: Del unuse files in immortalwrt-arm64
         run: |
           docker exec immortalwrt-arm64 sh -c "rm -rf /tmp/ipk /tmp/core"
+      
       - name: Replace values in config file
         run: |
           echo "当前网络配置路径"
@@ -201,17 +210,21 @@ jobs:
           sed -i "s/192.168.1.1/${{ github.event.inputs.gateway }}/g" "$CONFIG_PATH"
           echo "输出配置"
           cat $CONFIG_PATH
+      
       - name: Commit modified container in immortalwrt-arm64
         run: |
           docker cp "./src/network" immortalwrt-arm64:/etc/config/network
           docker restart immortalwrt-arm64
           docker commit immortalwrt-arm64 immortalwrt:arm64
+      
       - name: Run container and modify in immortalwrt-amd64
         run: |
           docker run -d --name immortalwrt-amd64 immortalwrt:initial-amd64 /bin/sh -c "while true; do sleep 1000; done"
+      
       - name: Ensure directory exists in immortalwrt-amd64
         run: |
           docker exec immortalwrt-amd64 sh -c "mkdir -p /tmp/log /var/lock"
+      
       - name: Install packages in immortalwrt-amd64
         run: |
           docker exec immortalwrt-amd64 sh -c "
