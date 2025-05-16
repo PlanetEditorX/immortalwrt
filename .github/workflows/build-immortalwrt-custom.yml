@@ -52,13 +52,11 @@ jobs:
         id: get_version
         run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
 
-      - name: TEST
+      - name: Unzip Clash Core
         run: |
-          ls -l
-          ls -l ./src/
-          ls -l ./src/core
           ls -l ./src/core/clash-linux-arm64.tar.gz
           tar -xzf ./src/core/clash-linux-arm64.tar.gz
+          mv clash clash_meta
         
       - name: Get latest Docker tag
         run: |
@@ -193,10 +191,6 @@ jobs:
           
       - name: Copy core in immortalwrt-arm64
         run: |
-          ls -l
-          ls ./src/
-          tar -xzf ./src/core/clash-linux-arm64.tar.gz
-          mv clash clash_meta
           docker cp clash_meta immortalwrt-arm64:/etc/openclash/core/
 
       - name: Del unuse files in immortalwrt-arm64
