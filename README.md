@@ -78,6 +78,19 @@
   ```bash
   is-opkg install luci-i18n-quickstart-zh-cn
   ```
+### 12.更新源
+- 在https://help.mirrorz.org/immortalwrt/中查找可用源
+- 在页面-软件包-配置opkg-/etc/opkg/distfeeds.conf 修改为
+  ```bash
+  src/gz immortalwrt_core https://mirror.nju.edu.cn/immortalwrt/releases/24.10.0/targets/armsr/armv8/packages
+  src/gz immortalwrt_base https://mirror.nju.edu.cn/immortalwrt/releases/24.10.0/packages/aarch64_generic/base
+  src/gz immortalwrt_kmods https://mirror.nju.edu.cn/immortalwrt/releases/24.10.0/targets/armsr/armv8/kmods/6.6.73-1-a7eafb055ecc4891236a188e564e21ff
+  src/gz immortalwrt_luci https://mirror.nju.edu.cn/immortalwrt/releases/24.10.0/packages/aarch64_generic/luci
+  src/gz immortalwrt_packages https://mirror.nju.edu.cn/immortalwrt/releases/24.10.0/packages/aarch64_generic/packages
+  src/gz immortalwrt_routing https://mirror.nju.edu.cn/immortalwrt/releases/24.10.0/packages/aarch64_generic/routing
+  src/gz immortalwrt_telephony https://mirror.nju.edu.cn/immortalwrt/releases/24.10.0/packages/aarch64_generic/telephony
+  ```
+
 
 
 
