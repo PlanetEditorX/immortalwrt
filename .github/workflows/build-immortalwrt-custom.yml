@@ -245,7 +245,7 @@ jobs:
           docker exec immortalwrt-amd64 sh -c "/tmp/is-opkg opkg install luci-i18n-quickstart-zh-cn"
       - name: Install Are-u-ok in immortalwrt-amd64
         run: |
-          docker exec immortalwrt-amd64 sh -c "wget -qO PassWall2.run https://github.com/AUK9527/Are-u-ok/raw/main/x86/all/PassWall2_25.4.22_x86_64_all_sdk_22.03.7.run && chmod +x PassWall2.run && ./PassWall2.run"
+          docker exec immortalwrt-amd64 sh -c "wget -qO PassWall2.run https://github.com/AUK9527/Are-u-ok/raw/main/x86/all/PassWall2_25.5.7_x86_64_all_sdk_22.03.7.run && chmod +x PassWall2.run && ./PassWall2.run"
           docker exec immortalwrt-amd64 sh -c "wget -qO OpenClash.run https://github.com/AUK9527/Are-u-ok/raw/main/x86/all/OpenClash_0.46.079+x86_64_core.run && chmod +x OpenClash.run && ./OpenClash.run"
       - name: Commit modified container in immortalwrt-amd64
         run: |
