@@ -52,6 +52,14 @@ jobs:
         id: get_version
         run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
 
+      - name: TEST
+        run: |
+          ls -l
+          ls -l ./src/
+          ls -l ./src/core
+          ls -l ./src/core/clash-linux-arm64.tar.gz
+          tar -xzf ./src/core/clash-linux-arm64.tar.gz
+        
       - name: Get latest Docker tag
         run: |
           # 通过page=2&page_size=1限制获取最新版本号，page=1&page_size=1为latest，page=2&page_size=1为X.Y.Z-c/python
