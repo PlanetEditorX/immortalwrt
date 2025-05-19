@@ -149,6 +149,7 @@ jobs:
             opkg install *.ipk
             opkg install curl
             opkg install luci-i18n-argon-config-zh-cn
+            opkg install openssh-sftp-server
           "
       - name: Download and Run istore-reinstall.run in immortalwrt-arm64
         if: ${{ github.event.inputs.arm_istore == 'true' }}
